@@ -538,7 +538,7 @@ h1{font-size:24px;letter-spacing:-.65px;margin-bottom:8px}
 /* v2.1 — canvas-first dashboard with 70/30 split, cards on the home screen */
 :root{--canvas:#f7f8fa;--outline:#eceef1;--ink:#25282d}
 body{background:var(--canvas)}
-.workspace-toolbar.dashboard-toolbar{height:60px;min-height:60px;background:#fff;border-bottom:1px solid var(--outline);display:flex;justify-content:flex-end;align-items:center;padding:0 clamp(14px,2.6vw,40px);position:sticky;top:0;z-index:40}
+.workspace-toolbar.dashboard-toolbar{height:60px;min-height:60px;width:100%;max-width:none;margin:0;background:#fff;border-bottom:1px solid var(--outline);display:flex;justify-content:flex-end;align-items:center;padding:0 clamp(14px,2.6vw,40px);position:sticky;top:0;z-index:40}
 .workspace-toolbar.dashboard-toolbar .topnav{display:none!important}
 .workspace-toolbar .toolbar-spacer{flex:1}
 .workspace-toolbar.dashboard-toolbar .topactions{display:flex;justify-content:flex-end;gap:9px;padding:0}
@@ -1001,6 +1001,35 @@ body.workspace-editing #fields .inline-editor{
  body.workspace-editing main#workspace-main{padding:0 0 105px!important}
  body.workspace-editing .editor-tab-strip{padding:0 15px!important;top:56px!important}
  body.workspace-editing #fields .inline-editor{margin:15px 15px 0!important}
+}
+
+/* Shared centered layout width — same 1640px limit for header and workspace. */
+:root{--site-max-width:1640px}
+.workspace-toolbar.dashboard-toolbar,
+.shell{
+  width:100%;
+  max-width:var(--site-max-width);
+  margin-inline:auto;
+}
+
+/* Clean white app canvas on a softly grey surrounding page. */
+:root{--outer-canvas:#f1f2f4;--page-divider:#e8ebef}
+html,body{background:var(--outer-canvas)}
+.workspace-toolbar.dashboard-toolbar,
+.shell{
+  background:#fff;
+  border-left:1px solid var(--page-divider);
+  border-right:1px solid var(--page-divider);
+}
+main#workspace-main{background:#fff}
+.shell>.aside{background:#fff;border-left:1px solid var(--page-divider)}
+/* White cards rely on subtle outlines rather than grey page-wide panels. */
+.dashboard-purpose{background:#fff;border-color:var(--page-divider);box-shadow:0 3px 18px rgba(25,35,51,.025)}
+.board-card{background:#fff;border-color:var(--page-divider);box-shadow:0 3px 14px rgba(25,35,51,.025)}
+.board-add-card{background:#fff}
+.preview-panel,.prompt-panel{background:#fff;border-color:var(--page-divider);box-shadow:none}
+@media(max-width:1640px){
+  .workspace-toolbar.dashboard-toolbar,.shell{border-left:0;border-right:0}
 }
 </style>
 </head>
