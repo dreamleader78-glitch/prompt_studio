@@ -1,0 +1,2087 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>프롬프트 빌더</title>
+<style>
+
+/* Prompt Studio — focused prompt builder */
+.brandmark{color:#ff5a1f;margin-right:6px;font-size:22px;line-height:1}
+:root{
+  color-scheme:light;
+  font-family:Inter,'Pretendard','Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:#fff;color:#202124;
+  --surface:#fff;--surface2:#f7f7f8;--stroke:#eceef0;--muted:#858991;
+  --accent:#ff5a1f;--accentsoft:#fff1eb;--orange:#ff5a1f;
+  --orange-hover:#ed4d12;--shadow:0 8px 28px rgba(32,37,45,.035);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#fff;color:#202124}
+button,select,input,textarea{font:inherit}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,[role=radio]:focus-visible{outline:3px solid rgba(255,90,31,.28);outline-offset:2px}
+header{min-height:74px;border-bottom:1px solid #eceef0;background:#fff;display:flex;gap:20px;align-items:center;justify-content:space-between;padding:15px 29px;position:relative;z-index:2}
+header strong{display:inline-flex;align-items:center;color:#242528;font-size:20px;letter-spacing:-.7px;font-weight:850}
+header strong::first-letter{color:#ff5a1f}
+header .tag{color:#a1a4aa;font-size:10px;margin-left:14px;letter-spacing:1.2px;font-weight:650}
+.topactions,.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{background:#fff;border:1px solid #e4e6e8;color:#4d5056;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;transition:.16s ease}
+.btn:hover{background:#f6f7f8;border-color:#d2d6da}
+.btn.primary{background:#ff5a1f;border-color:#ff5a1f;color:#fff}
+.btn.primary:hover{background:#ed4d12;border-color:#ed4d12}
+.shell{display:grid;grid-template-columns:196px minmax(390px,1fr) minmax(380px,.93fr);min-height:calc(100vh - 74px)}
+nav{border-right:1px solid #eceef0;padding:26px 14px;background:#fbfbfc}
+nav .navhead{color:#9b9da4;font-size:10px;font-weight:800;letter-spacing:1.5px;padding:0 13px 17px}
+nav button{border:1px solid transparent;background:transparent;color:#6a6d73;text-align:left;width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;border-radius:11px;padding:12px 13px;font-size:13px;font-weight:600;margin-bottom:5px;transition:background .16s,color .16s,border-color .16s}
+nav button:hover{background:#fff;color:#282a2d;border-color:#ededee}
+nav button.active{background:#fff1eb;color:#f15a24;border-color:#ffdfd2;box-shadow:inset 3px 0 0 #ff5a1f;font-weight:800}
+nav button .dot{width:6px;height:6px;border-radius:50%;background:#d4d5d7;opacity:1}
+nav button.active .dot{background:#ff5a1f}
+main{padding:30px 35px 48px;min-width:0;max-height:calc(100vh - 74px);overflow:auto;background:#fff}
+.eyebrow{font-size:10px;letter-spacing:1.7px;color:#f05a26;font-weight:800}
+h1{font-size:27px;margin:9px 0 7px;letter-spacing:-.8px;font-weight:830}
+.sub{color:#858991;font-size:12px;line-height:1.8;margin:0 0 23px}
+.aside{padding:26px;background:#fdfdfd;border-left:1px solid #eceef0;min-width:0;display:flex;flex-direction:column;gap:13px;max-height:calc(100vh - 74px);overflow:auto}
+.aside h2{font-size:16px;margin:0;letter-spacing:-.35px}
+.aside .hint{font-size:11px;line-height:1.7;color:#8f9297}
+.panel{background:#fff;border:1px solid #eceef0;border-radius:17px;padding:18px;box-shadow:var(--shadow)}
+.panel-title{font-size:12px;font-weight:800;margin:0 0 15px;display:flex;align-items:center;justify-content:space-between;gap:8px;color:#313237}
+.sect{background:#fff;border:1px solid #e9ebed;border-radius:16px;padding:19px 21px;margin-bottom:14px;box-shadow:var(--shadow)}
+.sect summary{font-size:13px;font-weight:800;cursor:pointer;list-style-position:outside;margin-left:8px;color:#323439}
+.sect summary::marker{color:#ff5a1f}
+.sect summary small{font-size:10px;color:#aaadb2;font-weight:500;margin-left:8px}
+.sect .inside{padding-top:24px}
+.field{margin-bottom:21px}.field:last-child{margin-bottom:3px}
+.field .fieldtop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.field label,.field .fieldlabel{font-size:12px;font-weight:750;color:#46484d}
+.field small{font-size:11px;color:#9da0a5;line-height:1.6;display:block;margin-top:8px}
+.field select,.field textarea,.field input:not([type=range]):not([type=color]):not([type=checkbox]){border:1px solid #e5e7e9;background:#f8f9fa;color:#37383c;padding:11px 12px;border-radius:10px;min-width:0;width:100%;outline-offset:2px}
+.field select{appearance:none;background:#f8f9fa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23858a92' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 13px center;padding-right:37px}
+.field textarea{min-height:86px;resize:vertical;line-height:1.65}
+.field textarea::placeholder{color:#adb0b5}
+.field select:hover,.field textarea:hover,.field input:not([type=range]):not([type=color]):not([type=checkbox]):hover{border-color:#cfd3d6}
+.range-control{display:flex;align-items:center;gap:10px}
+.range-control input[type=range]{appearance:none;-webkit-appearance:none;flex:1;width:100%;min-width:35px;height:24px;margin:0;cursor:pointer;background:transparent}
+.range-control input[type=range]::-webkit-slider-runnable-track{height:6px;background:linear-gradient(to right,#ff5a1f 0%,#ff5a1f var(--progress,50%),#ebedef var(--progress,50%),#ebedef 100%);border-radius:8px}
+.range-control input[type=range]::-moz-range-track{height:6px;background:#ebedef;border-radius:8px}
+.range-control input[type=range]::-moz-range-progress{height:6px;background:#ff5a1f;border-radius:8px}
+.range-control input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;border:3px solid #fff;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.20),0 0 0 1px rgba(0,0,0,.08);margin-top:-6px}
+.range-control input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;border:3px solid #fff;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.17)}
+.range-control input[type=number]{width:76px!important;text-align:right;font-variant-numeric:tabular-nums;font-size:12px;padding:9px 7px!important;color:#ff5a1f!important;font-weight:750;background:#fff!important}
+.unit{color:#989ba0;font-size:12px;min-width:14px}
+.range-track-area{flex:1;min-width:0;display:flex;flex-direction:column;gap:0}
+.range-side-labels{display:flex;justify-content:space-between;gap:12px;margin-top:3px;color:#8f939a;font-size:10.5px;font-weight:650;line-height:1.4}
+.range-side-labels span{max-width:47%}
+.range-side-labels span:last-child{text-align:right}
+.range-control{align-items:flex-start}
+.range-control input[type=number],.range-control .unit{margin-top:0}
+.filter-group{margin:0 0 20px}
+.filter-group:last-child{margin-bottom:3px}
+.filter-group-heading{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
+.filter-group-heading strong{color:#45484e;font-size:12px;font-weight:800}
+.filter-group-heading span{font-size:10.5px;color:#999da4}
+.gridtwo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.gridtwo .field{margin-bottom:10px}
+.seg{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:17px}
+.seg button{background:#f5f6f7;border:1px solid #f0f1f2;color:#60636a;border-radius:11px;padding:10px 12px;font-size:11.5px;font-weight:700;transition:.15s}
+.seg button:hover{background:#f0f1f2}
+.seg button.active{background:#fff1eb;border-color:#ff6c36;color:#f45116;box-shadow:0 0 0 1px rgba(255,90,31,.10) inset}
+.toggleline{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:7px 0 20px;font-size:12px;font-weight:700;color:#484b50}
+.toggleline input{accent-color:#ff5a1f;width:18px;height:18px}
+.toggleline label small{color:#969ba1!important}
+.swatch{display:flex;gap:8px;align-items:center}.swatch input{width:46px;height:35px;padding:1px;background:#fff;border:1px solid #dedfe2;border-radius:8px}.swatch span{color:#989ba1;font-size:11px}
+.helper{color:#93969d;font-size:11.5px;line-height:1.7;margin:0 0 15px}
+.previewarea{position:relative;overflow:hidden;border:1px solid #e4e7eb;border-radius:13px;background:#d5d8de;aspect-ratio:1.48}
+canvas{display:block;width:100%;height:100%}
+.previewtags{position:absolute;left:10px;top:10px;display:flex;gap:5px;flex-wrap:wrap;max-width:90%;pointer-events:none}
+.previewtags span{font-size:9px;font-weight:750;background:rgba(255,255,255,.94);border:1px solid #edeff1;color:#50545c;border-radius:7px;padding:5px 7px;box-shadow:0 2px 5px rgba(24,27,34,.04)}
+.disclaimer{margin:12px 0 0;font-size:11px;color:#f05a21;line-height:1.65;border-left:3px solid #ff5a1f;padding:6px 10px;background:#fff8f4;border-radius:0 6px 6px 0;font-weight:650}
+.previewtools{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:10px}
+.previewtools label,.previewtools .preview-subject-label{font-size:11px;color:#90939b}
+.previewtools select{background:#f8f9fa;color:#333;border:1px solid #e4e6e9;border-radius:7px;padding:6px 9px;font-size:11px}
+.subject-indicator{font-size:11px;color:#777b81;background:#f5f6f7;border:1px solid #edeef0;border-radius:8px;padding:7px 10px}
+.prompt{white-space:pre-wrap;background:#fff;border:1px solid #e7e9ed;border-radius:13px;padding:17px;line-height:1.9;font-size:11.8px;color:#464950;max-height:340px;min-height:150px;overflow:auto;box-shadow:var(--shadow)}
+.prompthead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.count{font-size:10px;color:#f65a1e;background:#fff1e9;border-radius:20px;padding:6px 9px;font-weight:750}
+.warning{font-size:11px;line-height:1.65;background:#fff8ef;border:1px solid #ffe0b4;border-radius:10px;padding:12px;margin-top:7px;color:#915d25}
+.status{font-size:11px;color:#969ba3;line-height:1.6}
+.hidden{display:none!important}
+.footer-note{font-size:11px;color:#999da4;line-height:1.7}
+.presethint{border:1px dashed #f0d7c9;background:#fffaf7;border-radius:10px;color:#8e7a6d;font-size:11px;line-height:1.65;padding:12px 13px;margin-bottom:13px}
+.narrow{max-width:740px}
+.preset-actions{display:flex;gap:7px;flex-wrap:wrap;margin:5px 0 15px}
+.mini{font-size:10px;color:#a0a3aa}
+.tip{display:inline-block;font-size:10px;color:#f15b24;background:#fff1eb;border-radius:7px;padding:6px 9px;margin:0 0 12px;font-weight:750;letter-spacing:.35px}
+.inlinehelp{color:#92979d;font-size:10px}
+.sectionbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.sectionbar h3{margin:0;font-size:15px}
+.draft-tag{font-size:10px;color:#f15a24;border:1px solid #ffd8c7;background:#fff3ec;border-radius:7px;padding:5px 9px;font-weight:750}
+.choice-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,136px),1fr));gap:8px}
+.choice-tile{min-height:44px;padding:11px 12px;border:1px solid #eef0f1;border-radius:12px;background:#f5f6f7;color:#666970;font-weight:650;font-size:11.5px;line-height:1.4;text-align:center;transition:background .13s,border-color .13s,box-shadow .13s;white-space:normal;overflow-wrap:anywhere}
+.choice-tile:hover{background:#f0f1f2;border-color:#dadddf}
+.choice-tile.selected{color:#f25b23;background:#fff4ee;border-color:#ff6531;box-shadow:0 0 0 1px rgba(255,90,31,.12) inset;font-weight:800}
+.choice-tile:focus-visible{outline:3px solid rgba(255,90,31,.3);outline-offset:2px}
+@media(max-width:1270px){.shell{grid-template-columns:174px minmax(350px,1fr) 365px}main{padding:23px}.aside{padding:18px}}
+@media(max-width:1050px){.shell{grid-template-columns:160px minmax(0,1fr)}main{max-height:none}.aside{grid-column:2;max-height:none;border-left:0;border-top:1px solid var(--stroke)}.previewarea{max-width:620px}}
+@media(max-width:680px){header{padding:15px 16px;align-items:flex-start;flex-direction:column;gap:12px}header strong{font-size:19px}header .tag{display:none}.shell{display:block}nav{display:flex;align-items:center;gap:5px;overflow-x:auto;white-space:nowrap;border-right:0;border-bottom:1px solid var(--stroke);padding:10px 9px;background:#fafafa}nav .navhead{display:none}nav #nav{display:flex;align-items:center;gap:5px;white-space:nowrap}nav button{flex:0 0 auto;width:auto;white-space:nowrap;font-size:11px;margin:0;padding:10px 12px}nav button.active{box-shadow:inset 0 -2px 0 #ff5a1f}nav button .dot{display:none}main,.aside{padding:18px}h1{font-size:24px}.gridtwo{grid-template-columns:1fr}.choice-options{grid-template-columns:repeat(auto-fit,minmax(min(100%,125px),1fr))}}
+
+/* Advanced light placement and Photoshop-inspired photo-filter controls */
+.light-position-panel{background:#fafafb;border:1px solid #edeef0;border-radius:14px;padding:15px 14px;margin-bottom:19px}
+.light-position-layout{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px}
+.light-pad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:min(100%,315px);margin:0 auto}
+.light-position-btn{background:white;border:1px solid #e2e4e7;border-radius:10px;min-height:50px;color:#757980;font-size:10.5px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:.15s}
+.light-position-btn:hover{border-color:#ffb99e;background:#fff8f4}
+.light-position-btn.active{color:#ef5017;border-color:#ff5a1f;background:#fff1eb;box-shadow:0 0 0 1px rgba(255,90,31,.09) inset}
+.light-position-btn .direction-mark{font-size:16px;line-height:1}
+.photo-filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px}
+.filter-chip{display:flex;align-items:center;gap:10px;justify-content:flex-start;padding:11px 12px;border:1px solid #eef0f1;border-radius:12px;background:#f5f6f7;color:#666970;font-weight:650;font-size:11.5px;line-height:1.35;text-align:left;transition:background .13s,border-color .13s,box-shadow .13s}
+.filter-chip:hover{background:#f0f1f2;border-color:#dadddf}
+.filter-chip.selected{color:#f25b23;background:#fff4ee;border-color:#ff6531;box-shadow:0 0 0 1px rgba(255,90,31,.12) inset;font-weight:800}
+.filter-chip-swatch{width:22px;height:22px;border-radius:999px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 3px rgba(0,0,0,.06) inset;flex:0 0 22px}
+.filter-chip-name{display:flex;flex-direction:column;gap:1px}
+.filter-chip-name small{margin:0;color:#8f939a;font-size:10px;font-weight:600}
+.reference-card{margin:0 0 15px;border:1px solid #eceef0;border-radius:16px;padding:18px;background:#fff}
+.reference-card.off{background:#fafafb}
+.reference-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.reference-head strong{font-size:13px}
+.reference-active{display:flex;align-items:center;gap:7px;color:#70747b;font-size:11px;font-weight:700;cursor:pointer}
+.reference-active input{accent-color:#ff5a1f;width:16px;height:16px}
+.reference-roles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.reference-roles .choice-tile{min-height:42px;font-size:11.5px}
+.reference-roles .choice-tile:last-child{grid-column:1/-1}
+.reference-card.off .reference-body{opacity:.48;pointer-events:none}
+.reference-product-options{margin-top:14px;padding:14px;border:1px solid #eceef0;border-radius:12px;background:#fbfbfc}
+.reference-product-options .toggleline{margin:0 0 14px}
+.reference-product-options .field{margin-bottom:0}
+.reference-custom{margin-top:13px}
+.reference-custom label{display:block;margin-bottom:8px;font-size:11.5px;font-weight:750}
+.reference-custom input{width:100%;border:1px solid #e3e5e8;background:#f8f9fa;padding:12px 13px;border-radius:10px;font-size:12px}
+.reference-note{font-size:11px;color:#898d93;line-height:1.65;margin:9px 0 0}
+@media(max-width:680px){.reference-roles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Compact 9-way light picker with optional advanced positioning */
+.fine-adjust-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:315px;margin:17px auto 0;padding:12px 13px;border:1px solid #e7e8ec;border-radius:11px;background:#fff;color:#47494e;font-size:12px;font-weight:750;cursor:pointer}
+.fine-adjust-toggle input{accent-color:#ff5a1f;width:17px;height:17px;cursor:pointer}
+.fine-adjust-controls{max-width:420px;margin:17px auto 2px;border-top:1px solid #e9ebee;padding-top:18px}
+.fine-adjust-controls .field:last-child{margin-bottom:0}
+
+/* Five-step creative controls: continuous preview, descriptive AI-ready output */
+.stage-picker{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:11px}
+.stage-button{border:1px solid #e9ebed;background:#f8f9fa;color:#71757d;border-radius:8px;padding:9px 3px;min-height:36px;font-size:10px;line-height:1.35;font-weight:650;text-align:center;overflow-wrap:anywhere}
+.stage-button:hover{background:#fff8f3;border-color:#ffd4c5}
+.stage-button.active{border-color:#ff5a1f;color:#ed531e;background:#fff2e9;font-weight:800}
+.stage-caption{font-size:10px;color:#91949b;margin-top:6px}
+.stage-caption strong{font-weight:800;color:#ef5c2b}
+@media(max-width:680px){.stage-picker{gap:4px}.stage-button{font-size:9.5px;padding:8px 1px;min-height:39px}}
+
+/* Studio Surface System: independent background / floor */
+.surface-stack{display:grid;gap:17px}
+.surface-card{border:1px solid #e9ebed;border-radius:18px;background:#fff;padding:20px 21px;box-shadow:var(--shadow)}
+.surface-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
+.surface-head strong{display:block;font-size:14px;color:#323439}
+.surface-head small{display:block;color:#9b9fa5;font-size:11px;margin-top:6px;line-height:1.5}
+.surface-number{color:#f15b24;font-size:11px;font-weight:850;letter-spacing:.6px}
+.surface-card .choice-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+.surface-group{margin-top:23px}
+.surface-group-title{font-weight:800;font-size:12px;line-height:1.5;color:#454950;display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 12px}
+.surface-group-title em{font-style:normal;color:#a2a6ae;font-size:10px;font-weight:600}
+.surface-color-row{display:flex;align-items:center;gap:11px;padding:11px;background:#f8f9fa;border:1px solid #eceef0;border-radius:13px}
+.surface-color-box{height:48px;width:54px;min-width:54px;border-radius:10px;overflow:hidden;border:1px solid #e0e3e7;background:#fff;position:relative}
+.surface-color-box input[type=color]{position:absolute;inset:-9px;width:calc(100% + 18px);height:calc(100% + 18px);padding:0;border:0;cursor:pointer;background:transparent}
+.surface-color-code{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}
+.surface-color-code label{font-size:10px;font-weight:750;color:#92959d}
+.surface-color-code input{width:100%;border:1px solid #e2e5e8;border-radius:9px;background:#fff;color:#41454d;padding:10px 11px;font-size:13px;font-weight:750;font-variant-numeric:tabular-nums;letter-spacing:.4px}
+.surface-color-code input.invalid{border-color:#de6b46;background:#fff7f3}
+.surface-material-section{margin-top:15px}
+.material-category{margin:18px 0 11px;display:flex;align-items:center;gap:9px;font-size:11px;font-weight:850;color:#51545a}
+.material-category span{font-size:10px;color:#a0a4aa;font-weight:500}
+.material-library{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.material-card{border:1px solid #e7e9eb;background:#fafafb;min-width:0;border-radius:12px;min-height:124px;padding:13px 5px 11px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;text-align:center;transition:background .15s,border-color .15s,box-shadow .15s}
+.material-card:hover{border-color:#ffc9b6;background:#fff8f5}
+.material-card.selected{border-color:#ff5a1f;background:#fff4ed;box-shadow:0 0 0 1px rgba(255,90,31,.14) inset}
+.material-card-label{font-size:10.5px;color:#686d75;font-weight:750;white-space:normal;line-height:1.35}
+.material-card.selected .material-card-label{color:#ed5520}
+.material-orb{width:69px;height:69px;display:block;position:relative;border-radius:50%;overflow:hidden;flex:0 0 69px;border:1px solid rgba(68,75,84,.13);box-shadow:inset -9px -10px 14px rgba(22,27,32,.44),inset 3px 3px 7px rgba(255,255,255,.44),0 5px 8px rgba(23,29,37,.14);background:radial-gradient(circle at 28% 20%,rgba(255,255,255,.95),transparent 30%),radial-gradient(circle at 40% 33%,#a0a7ad 3%,#727b84 44%,#383f48 88%)}
+.material-orb:after{content:'';position:absolute;inset:0;opacity:.55;border-radius:50%;pointer-events:none}
+.mat-matte{background:radial-gradient(circle at 31% 22%,#f1f1f0,#a7abae 34%,#757d83 65%,#41474c 100%)}
+.mat-glossy{background:radial-gradient(ellipse at 28% 18%,#fff 0%,#fff 7%,#dfe3e5 18%,#919aa3 43%,#343c47 76%,#242b34 100%)}
+.mat-metal{background:linear-gradient(106deg,#343b44 0%,#dce1e5 17%,#8a939b 31%,#f5f5f4 46%,#616c78 64%,#d5d9dd 79%,#282f38 100%)}
+.mat-metal:after{background:repeating-linear-gradient(0deg,transparent 0px,rgba(255,255,255,.2) 1px,transparent 2px,transparent 4px);opacity:.27}
+.mat-concrete{background:radial-gradient(circle at 23% 21%,#dadddd,#9da2a1 39%,#767d7c 68%,#343b3b)}
+.mat-concrete:after{background:repeating-radial-gradient(circle at 20% 17%,rgba(26,31,35,.42) 0px,transparent 1.5px,transparent 4px),repeating-radial-gradient(circle at 66% 58%,rgba(248,250,248,.55) 0px,transparent 1.6px,transparent 5px);opacity:.75}
+.mat-stone{background:radial-gradient(circle at 23% 20%,#f0eeea,#9ea3a1 39%,#666c68 75%,#343936)}
+.mat-stone:after{background:radial-gradient(circle at 30% 70%,#414f4a 0 6%,transparent 8%),radial-gradient(circle at 75% 23%,#303a36 0 4%,transparent 8%),repeating-radial-gradient(circle,transparent 0 4px,rgba(25,34,28,.28) 4px 5px,transparent 6px 10px);opacity:.6}
+.mat-marble{background:radial-gradient(circle at 27% 21%,#fff,#e1e2e0 50%,#879095 86%,#42484e)}
+.mat-marble:after{background:repeating-linear-gradient(117deg,transparent 0 9px,rgba(45,67,77,.38) 10px,transparent 11px 22px,rgba(94,112,111,.45) 23px,transparent 25px 36px);opacity:.7;filter:blur(.6px)}
+.mat-wood{background:radial-gradient(circle at 24% 17%,rgba(255,255,255,.7),transparent 38%),linear-gradient(96deg,#d1a879,#ae8056,#6f4a31)}
+.mat-wood:after{background:repeating-linear-gradient(174deg,transparent 0 4px,rgba(75,40,21,.40) 5px,transparent 7px 13px);opacity:.7}
+.mat-fabric{background:radial-gradient(circle at 21% 14%,#e5e2dd,#969891 48%,#454b4a 95%)}
+.mat-fabric:after{background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(25,35,35,.35) 2px 3px),repeating-linear-gradient(90deg,transparent 0 2px,rgba(245,245,241,.27) 2px 3px);opacity:.73}
+.mat-glass{background:radial-gradient(ellipse at 24% 22%,#fff 0,#fff 8%,#cad7d9 18%,#7fa5a8 40%,#dce8e7 57%,#557a80 82%,#26363c 100%)}
+.mat-glass:after{background:linear-gradient(105deg,transparent 22%,rgba(255,255,255,.9) 30%,transparent 39%,transparent 65%,rgba(255,255,255,.5) 70%,transparent 74%);opacity:.6}
+.mat-leather{background:radial-gradient(circle at 20% 18%,#e5c4b1,#b27b63 40%,#764536 80%,#3a251e)}
+.mat-leather:after{background:repeating-radial-gradient(circle at 50% 50%,transparent 0 3px,rgba(45,16,12,.33) 4px,transparent 5px 8px);opacity:.75}
+.surface-properties{border-top:1px solid #eef0f2;margin-top:21px;padding-top:18px}
+.surface-properties .field{margin-bottom:16px}
+.surface-reference-hint{padding:15px 16px;background:#fffaf7;border:1px solid #ffe4d4;color:#9b7865;border-radius:12px;font-size:11px;line-height:1.7;margin-top:15px}
+@media(max-width:680px){.surface-card{padding:17px}.material-library{grid-template-columns:repeat(3,minmax(0,1fr))}.material-orb{height:58px;width:58px;flex-basis:58px}.material-card{min-height:109px}}
+
+
+/* Prompt Studio v1.2: horizontal navigation + typography design tokens */
+:root{
+ --text-primary:#24262b;--text-secondary:#646971;--text-muted:#899099;
+ --font-h1:26px;--font-h2:17px;--font-label:13.5px;--font-body:13px;--font-help:11.5px;
+ --space-page:28px;
+}
+body{font-size:var(--font-body);color:var(--text-primary)}
+header{min-height:68px;padding:14px var(--space-page);max-width:1600px;margin:auto;border-bottom:none}
+header strong{font-size:20px;font-weight:800;letter-spacing:-.7px}
+header .tag{font-size:10.5px;font-weight:650}
+header .btn{font-size:12px}
+.topnav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-block:1px solid #ebedef;padding:0 20px;box-shadow:0 3px 13px rgba(25,30,45,.025)}
+.topnav #nav{display:flex;justify-content:center;align-items:center;gap:7px;max-width:1540px;margin:0 auto;min-height:58px}
+.topnav button{flex:0 0 auto;width:auto;margin:0;padding:11px 17px;white-space:nowrap;border:1px solid transparent;background:transparent;border-radius:10px;color:#6a6f78;font-size:13px;font-weight:650;line-height:1.3;transition:.14s ease}
+.topnav button:hover{background:#f6f7f8;border-color:#eaebed;color:#292c31}
+.topnav button.active{background:var(--accentsoft);border-color:#ffd9c9;color:#e95418;box-shadow:none;font-weight:800}
+.topnav button .dot{display:none}
+.shell{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(350px,.92fr);max-width:1600px;margin:0 auto;min-height:calc(100vh - 128px)}
+main{min-width:0;max-height:calc(100vh - 128px);overflow:auto;padding:32px clamp(22px,3.2vw,50px) 60px;background:#fff;scroll-margin-top:75px}
+.aside{min-width:0;max-height:calc(100vh - 128px);overflow:auto;border-left:1px solid #eff0f2;border-top:0;grid-column:auto;background:#fcfcfd;padding:28px clamp(19px,2.6vw,38px);gap:12px}
+h1{font-size:var(--font-h1);font-weight:800;letter-spacing:-.75px;line-height:1.3;margin:0 0 9px}
+.sub{font-size:var(--font-body);line-height:1.7;color:#777e86;margin:0 0 25px;max-width:680px}
+.sect{margin-bottom:16px;padding:22px 24px;border-radius:15px;box-shadow:0 4px 18px rgba(22,24,30,.017)}
+.sect summary{font-size:var(--font-h2);font-weight:780;letter-spacing:-.35px;line-height:1.4;color:#292d32;margin-left:5px}
+.sect summary small{font-size:11px;font-weight:550;color:#a0a5ab;letter-spacing:0}
+.sect .inside{padding-top:21px}
+.field{margin-bottom:23px}
+.field .fieldtop{margin-bottom:11px}
+.field label,.field .fieldlabel{font-size:var(--font-label);font-weight:700;color:#3b3e44;line-height:1.5}
+.field small,.helper,.surface-reference-hint{font-size:var(--font-help);line-height:1.65;color:#828890}
+.field textarea,.field input,.field select{font-size:var(--font-body)}
+.choice-tile,.filter-chip{font-size:12px;font-weight:650;line-height:1.45}
+.panel-title{font-size:var(--font-h2);font-weight:780;line-height:1.35;margin-bottom:17px;color:#2c2e33}
+.aside h2,.prompthead h2{font-size:var(--font-h2);font-weight:780;margin:0}
+.aside .hint,.footer-note,.disclaimer{font-size:11.5px;line-height:1.65}
+.prompt{font-size:12.5px;line-height:1.85;color:#35383e;padding:19px;max-height:360px}
+.reference-head strong{font-size:15px;font-weight:760}
+.surface-head strong{font-size:16px;font-weight:780}
+.surface-group-title{font-size:14px;font-weight:760}
+.material-category{font-size:12.5px;font-weight:740}
+.material-card-label{font-size:11.5px}
+.stage-picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-top:3px}
+.stage-button{min-height:44px;padding:11px 7px;font-size:11.5px;font-weight:650;line-height:1.35;border-radius:10px}
+.stage-field .fieldtop{margin-bottom:10px}
+.fine-adjust-toggle{font-size:13px}
+.previewarea{aspect-ratio:1.65}
+.draft-tag{font-size:10px}
+@media(max-width:1200px){
+ :root{--space-page:22px;--font-h1:24px;--font-h2:16px}
+ .topnav{padding:0 14px}
+ .topnav #nav{justify-content:flex-start;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#e7e8ea transparent;scroll-behavior:smooth}
+ .topnav button{padding:10px 14px;font-size:12.5px}
+ .shell{grid-template-columns:minmax(0,1.05fr) minmax(335px,.95fr)}
+ main{padding:26px 22px 40px}
+ .aside{padding:22px 18px}
+ .sect{padding:19px 20px}
+ .stage-picker{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}
+}
+@media(max-width:860px){
+ .shell{display:flex;flex-direction:column;min-height:0}
+ main,.aside{max-height:none;overflow:visible;width:100%;padding:24px clamp(16px,4vw,38px)}
+ .aside{border-left:0;border-top:1px solid #eff0f2}
+ .topnav{padding:0 12px}
+ .topnav #nav{min-height:54px}
+ .stage-picker{grid-template-columns:repeat(auto-fit,minmax(87px,1fr))}
+ .previewarea{max-width:650px;aspect-ratio:1.65}
+}
+@media(max-width:540px){
+ header{padding:15px 16px;gap:11px;align-items:flex-start;flex-direction:column}
+ header strong{font-size:18px}
+ header .tag{display:none}
+ .topactions{width:100%}
+ .topactions .btn{flex:1;text-align:center}
+ .topnav #nav{min-height:52px;gap:3px}
+ .topnav button{font-size:12px;padding:10px 12px;border-radius:9px}
+ main,.aside{padding:22px 15px}
+ h1{font-size:23px}
+ .sect{padding:18px 16px}
+ .sect summary{font-size:15px}
+ .choice-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .stage-picker{grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:6px}
+ .stage-button{font-size:11px;padding:9px 4px;min-height:42px}
+ .photo-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .previewarea{aspect-ratio:1.45}
+}
+
+/* v1.3 · Minimal workspace layout / prompt-first hierarchy */
+:root{
+ --font-h1:24px;
+ --font-h2:16px;
+ --font-label:13px;
+ --font-body:13px;
+ --font-help:11.5px;
+ --shadow:0 3px 16px rgba(23,29,39,.025);
+}
+body{background:#fff;color:#22252a}
+.workspace-toolbar{
+ display:flex;align-items:center;justify-content:space-between;gap:22px;
+ width:100%;max-width:1640px;min-height:70px;margin:0 auto;
+ padding:0 clamp(22px,2.8vw,44px);
+ background:#fff;border-bottom:1px solid #edf0f2;
+ position:sticky;top:0;z-index:50;
+}
+.workspace-toolbar .topnav{
+ position:static;flex:1 1 auto;min-width:0;background:none;
+ border:0;box-shadow:none;backdrop-filter:none;padding:0;
+}
+.workspace-toolbar .topnav #nav{
+ display:flex;align-items:center;justify-content:flex-start;gap:5px;
+ overflow-x:auto;overflow-y:hidden;max-width:none;min-height:68px;
+ margin:0;scrollbar-width:none;-ms-overflow-style:none;
+}
+.workspace-toolbar .topnav #nav::-webkit-scrollbar{display:none}
+.workspace-toolbar .topnav button{
+ flex:0 0 auto;margin:0;padding:10px 13px;border-radius:9px;
+ font-size:12.5px;font-weight:600;color:#646a73;
+}
+.workspace-toolbar .topnav button.active{background:#fff2eb;border-color:#ffdfd1;color:#e65a25;font-weight:780}
+.workspace-toolbar .topactions{display:flex;align-items:center;flex:0 0 auto;flex-wrap:nowrap;gap:8px}
+.workspace-toolbar .topactions .btn{padding:10px 13px;font-size:12px;white-space:nowrap;font-weight:650;border-radius:9px}
+.workspace-toolbar .topactions #save{background:#26282d;color:#fff;border-color:#26282d}
+.workspace-toolbar .topactions #save:hover{background:#3b3e43;border-color:#3b3e43}
+.shell{max-width:1640px;grid-template-columns:minmax(0,1.12fr) minmax(375px,.88fr);min-height:calc(100vh - 70px)}
+main{max-height:calc(100vh - 70px);padding:33px clamp(26px,3.3vw,54px) 60px}
+h1{font-size:24px;letter-spacing:-.65px;margin-bottom:8px}
+.sub{font-size:12px;margin-bottom:25px;color:#93979e}
+.sect{box-shadow:none;border-color:#edf0f2;border-radius:12px;padding:21px 23px}
+.sect summary{font-size:15px;font-weight:740}
+.field label,.field .fieldlabel{font-size:12.5px}
+.choice-tile,.filter-chip,.stage-button{border-radius:9px}
+.aside{
+ max-height:calc(100vh - 70px);overflow-y:auto;overflow-x:hidden;
+ padding:23px clamp(18px,2.5vw,34px) 27px;background:#fafbfc;
+ gap:15px;border-left:1px solid #edf0f2;
+}
+.preview-panel,.prompt-panel{background:#fff;border:1px solid #eaedf0;border-radius:14px;box-shadow:0 2px 10px rgba(36,43,51,.018)}
+.preview-panel{padding:15px 16px 16px;flex:0 0 auto}
+.preview-panel h2{font-size:14px;font-weight:760;margin:0 0 12px;color:#282b30;letter-spacing:-.2px}
+.previewarea{height:clamp(126px,20vh,188px);aspect-ratio:auto;min-height:0;border-radius:10px;background:#e0e4e9;border-color:#e5e8ec}
+.prompt-panel{display:flex;flex-direction:column;gap:13px;padding:19px;min-width:0;flex:0 0 auto}
+.prompthead{display:flex;align-items:center;justify-content:space-between;margin:0;gap:10px}
+.prompthead h2{font-size:17px;font-weight:780;letter-spacing:-.35px;color:#26292e}
+.count{font-size:11px;font-weight:650;background:#f3f4f6;color:#848991;border-radius:7px;padding:5px 8px}
+.prompt{
+ background:#f9fafb;border:1px solid #e8ebee;border-radius:11px;
+ font-size:12.5px;line-height:1.94;color:#34383f;
+ padding:20px;min-height:420px;height:clamp(420px,55vh,690px);max-height:none;
+ overflow:auto;white-space:pre-wrap;box-shadow:none;flex:0 0 auto;
+}
+.copy-main.btn{width:100%;min-height:53px;display:flex;align-items:center;justify-content:center;gap:12px;border-radius:10px;font-size:14px;font-weight:770;background:#26282d;border-color:#26282d;color:#fff;margin:0}
+.copy-main.btn:hover{background:#131519;border-color:#131519}
+.copy-main span{font-size:16px;font-weight:500}
+.secondary-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+.secondary-actions .btn{padding:11px 6px;border-radius:9px;color:#7c8189;font-size:11.5px;font-weight:650;background:#fff;border:1px solid #e8eaee;white-space:nowrap}
+.secondary-actions .btn:hover{color:#30343a;border-color:#d2d5d9;background:#f7f8fa}
+.status{font-size:10.5px;color:#a2a5ab;min-height:15px;margin:0 2px;text-align:center}
+@media(max-width:1150px){
+ .workspace-toolbar{gap:10px;padding:0 18px}
+ .workspace-toolbar .topnav button{padding:9px 10px;font-size:12px}
+ .workspace-toolbar .topactions .btn{padding:9px 10px;font-size:11px}
+ .shell{grid-template-columns:minmax(0,1fr) minmax(350px,.96fr)}
+ main{padding:25px 24px 45px}
+ .aside{padding:18px 17px 24px}
+ .prompt-panel{padding:16px}
+ .prompt{min-height:400px;height:clamp(400px,53vh,620px)}
+ .previewarea{height:clamp(112px,17vh,157px)}
+}
+@media(max-width:860px){
+ .shell{display:flex;flex-direction:column;min-height:0}
+ main,.aside{max-height:none;overflow:visible;width:100%;padding:24px clamp(16px,4vw,36px)}
+ .aside{border-left:0;border-top:1px solid #eff0f2}
+ .previewarea{height:clamp(160px,26vw,225px)}
+ .prompt{height:510px;min-height:420px}
+}
+@media(max-width:620px){
+ .workspace-toolbar{min-height:0;display:flex;flex-direction:column-reverse;align-items:stretch;gap:0;padding:8px 12px 0}
+ .workspace-toolbar .topactions{justify-content:flex-end;padding:0 1px 7px}
+ .workspace-toolbar .topnav{width:100%;flex:auto}
+ .workspace-toolbar .topnav #nav{min-height:44px;gap:3px}
+ .workspace-toolbar .topnav button{font-size:11.5px;padding:9px 11px}
+ main,.aside{padding:20px 14px}
+ .preview-panel{padding:14px}
+ .previewarea{height:180px}
+ .prompt-panel{padding:15px}
+ .prompt{height:440px;min-height:380px;padding:16px}
+ .secondary-actions{gap:5px}
+ .secondary-actions .btn{font-size:10px;padding:10px 3px}
+ .copy-main.btn{min-height:50px}
+}
+
+/* v1.4: fewer controls, consistent hierarchy and dynamic reference cards */
+.surface-head{margin-bottom:18px}
+.surface-head strong{font-size:16px}
+.surface-global-note{margin:0 0 16px;padding:11px 13px;background:#f6f7f8;border:1px solid #edeff1;border-radius:10px;color:#7a8087;font-size:11.5px;line-height:1.65}
+.surface-reference-hint{margin-top:14px}
+.reference-add{width:100%;min-height:45px;border:1px dashed #cfd4da;background:#fff;color:#505760;font-size:12.5px;font-weight:720;border-radius:11px;margin-top:2px}
+.reference-add:hover{border-color:#ff9f79;background:#fff9f5;color:#eb5a22}
+.reference-count{font-size:11px;color:#a0a5ab;margin:7px 2px 0;text-align:right}
+.reference-remove{border:0;background:transparent;color:#a0a4aa;font-size:11.5px;padding:4px 6px;border-radius:6px;font-weight:650}
+.reference-remove:hover{color:#df5727;background:#fff2eb}
+.color-mode-choice{margin-bottom:18px}
+.color-mode-choice .choice-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* Compact preview, more room for prompt and one-click copy */
+@media(min-width:861px){
+ .previewarea{height:clamp(110px,14vh,138px)}
+ .prompt{height:clamp(405px,46vh,550px);min-height:405px}
+}
+@media(min-width:861px) and (max-width:1150px){
+ .previewarea{height:110px}
+ .prompt{height:380px;min-height:380px}
+}
+
+/* Component-first workspace v2 */
+:root{--text-primary:#242629;--accent:#ff6733;--accentsoft:#fff1ec}
+.workspace-toolbar{min-height:68px;background:#fff}
+.workspace-toolbar .topnav #nav{gap:10px;min-height:68px}
+.workspace-toolbar .topnav button.nav-item{background:transparent;color:#828891;border:0;border-bottom:2px solid transparent;border-radius:0;padding:21px 10px;font-size:13px;font-weight:650;line-height:1.2;white-space:nowrap}
+.workspace-toolbar .topnav button.nav-item.active{color:#24272a;border-bottom-color:#ff6733;font-weight:800;box-shadow:none}
+.workspace-toolbar .topnav button.nav-item:hover{color:#292d31;background:transparent}
+.nav-entry{display:flex;align-items:center;gap:0;flex-shrink:0}
+.workspace-toolbar .topnav button.nav-remove{border:0;background:transparent;color:#b7bbc0;font-size:16px;padding:4px 5px;margin-left:-6px;min-width:20px}
+.workspace-toolbar .topnav button.nav-remove:hover{color:#f36b39;background:#fff2eb}
+.workspace-toolbar .topnav button.nav-add{border:1px dashed #e0e2e4;border-radius:9px;padding:9px 14px;background:#fff;font-size:12px;color:#555b64;font-weight:700;white-space:nowrap;margin-left:10px}
+.workspace-toolbar .topnav button.nav-add:hover{border-color:#ffb798;color:#ed6536;background:#fff7f3}
+.workspace-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.workspace-heading h1{font-size:26px;letter-spacing:-.8px}
+.workspace-heading .sub{max-width:580px;font-size:12px;color:#8c929a;margin:0 0 24px;line-height:1.7}
+.workspace-heading .subtle-remove{color:#a6abb1;font-weight:600;font-size:11px}
+.task-main-card{border:1px solid #e9ecef;border-radius:16px;padding:25px 25px 8px;background:#fff}
+.task-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.task-options .choice-tile{padding:15px 12px;min-height:92px;text-align:left;display:flex;flex-direction:column;gap:8px;align-items:flex-start;justify-content:flex-start}
+.task-options .choice-tile strong{font-size:13px;letter-spacing:-.2px;line-height:1.3}
+.task-options .choice-tile small{font-weight:500;font-size:10.5px;line-height:1.5;color:#93969c;margin:0}
+.task-options .choice-tile.selected small{color:#db7a58}
+.task-main-card textarea{min-height:76px}
+.optional{font-size:10px;color:#b0b4b9;font-weight:550;margin-left:5px}
+.block-header{margin:28px 0 15px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.block-header h2{margin:0 0 5px;font-size:18px;letter-spacing:-.4px;font-weight:780}
+.block-header p{margin:0;color:#969ba2;font-size:12px;line-height:1.55}
+.small-count{font-size:11px;background:#f2f4f5;color:#8b919a;padding:4px 8px;border-radius:30px;vertical-align:middle}
+.chosen-list{display:grid;gap:10px}
+.chosen-card{border:1px solid #e8ebee;background:#fff;border-radius:13px;padding:14px 17px;display:flex;align-items:center;gap:14px;text-align:left;width:100%;min-height:80px}
+.chosen-card:hover{border-color:#ffc7ac;background:#fffaf7}
+.chosen-icon,.catalog-icon{display:flex;align-items:center;justify-content:center;flex:0 0 42px;width:42px;height:42px;border-radius:12px;background:#fff2ec;color:#ee6837;font-size:24px;line-height:1}
+.chosen-desc,.catalog-card>span:nth-child(2){display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
+.chosen-desc strong,.catalog-card strong{font-size:13px;color:#272b30;font-weight:780}
+.chosen-desc small,.catalog-card small{font-size:11px;color:#979da5;line-height:1.4;font-weight:500}
+.chosen-arrow{color:#a5acb3;font-size:17px}
+.empty-board{border:1px dashed #dfe3e7;border-radius:13px;min-height:166px;padding:29px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:#8c929a;text-align:center}
+.empty-board>span{font-size:27px;color:#ff8a56}
+.empty-board strong{font-size:13px;color:#444a50}
+.empty-board p{font-size:11px;margin:0;line-height:1.5}
+.add-large{width:100%;margin:12px 0 8px;background:#fff;border:1px solid #e0e4e8;border-radius:12px;min-height:52px;color:#464d55;font-size:13px;font-weight:760}
+.add-large:hover{border-color:#ffb796;background:#fff8f4;color:#e8581e}
+.add-large span{font-size:20px;font-weight:400;margin-right:7px;vertical-align:-1px}
+.editor-breadcrumb{font-size:11.5px;color:#a1a7ae;margin-bottom:18px}
+.editor-breadcrumb button{border:0;background:none;padding:0;color:#8b939b;font-size:11.5px}
+.editor-breadcrumb button:hover{color:#f06937}
+.editor-breadcrumb span{padding:0 7px;color:#c1c5ca}
+.mode-panel,.partial-panel,.custom-partial{border:1px solid #e8ebee;border-radius:14px;padding:20px 22px;background:#fff;margin-bottom:18px}
+.mode-panel .fieldtop{margin-bottom:6px}
+.source-indicator{margin:0 0 17px;font-size:11px;color:#ea6a36}
+.source-indicator.muted{color:#a8acb1}
+.mode-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mode-choice{border:1px solid #e9ebed;border-radius:10px;background:#f8f9fa;text-align:left;padding:13px 10px;min-height:77px;display:flex;flex-direction:column;gap:8px}
+.mode-choice strong{font-size:12px;color:#575c64}
+.mode-choice small{font-size:10px;color:#969aa1;line-height:1.4}
+.mode-choice.active{border-color:#ff7649;background:#fff3ec}
+.mode-choice.active strong{color:#df5722}
+.mode-choice:disabled{opacity:.38;cursor:not-allowed}
+.keep-explainer{padding:20px;border:1px dashed #dde2e6;border-radius:13px;color:#676e77;font-size:13px;line-height:1.8;background:#fbfcfd}
+.partial-panel .block-header{margin:0 0 16px}
+.partial-panel .block-header h2{font-size:14px}
+.scope-list{display:flex;gap:8px;flex-wrap:wrap}
+.scope-label{display:flex;gap:8px;align-items:center;background:#f8f9fa;border:1px solid #e9ecf0;border-radius:10px;padding:10px 12px;cursor:pointer;font-size:12px;font-weight:650;color:#4a4e54;line-height:1.35}
+.scope-label:has(input:checked){background:#fff1e9;border-color:#ffbf9d;color:#e45a24}
+.scope-label input{accent-color:#ff6733;width:15px;height:15px;flex:0 0 auto;margin:0}
+.editable-controls{margin:0 0 16px}
+.editable-controls .surface-global-note{display:none}
+.editable-controls .presethint{display:none}
+.custom-partial{padding:18px 21px}
+.custom-partial label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:750;color:#393c41;margin-bottom:12px}
+.custom-partial label span{font-weight:500;font-size:11px;color:#9197a0}
+.custom-partial textarea{width:100%;min-height:102px;padding:14px;border:1px solid #e6e9ed;border-radius:10px;background:#fafbfc;resize:vertical;font-size:12px;line-height:1.65}
+.reference-note-field{margin-top:17px!important}
+.reference-note-field label{display:block;margin:0 0 8px;font-size:11px;font-weight:700}
+.reference-product-options .scope-label{background:#fff;border:0;padding:0}
+.panel-topline{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+.preview-panel h2{margin:0}
+.preview-caption{font-size:10px;color:#a9aeb4}
+.dialog-shade{position:fixed;inset:0;z-index:80;background:rgba(22,26,30,.35);display:flex;align-items:center;justify-content:center;padding:22px}
+.component-dialog{width:min(760px,100%);max-height:90vh;overflow:auto;padding:26px;border-radius:20px;background:#fff;box-shadow:0 22px 90px rgba(18,25,36,.16)}
+.dialog-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:22px;align-items:start}
+.dialog-head h2{font-size:21px;margin:0 0 6px;letter-spacing:-.5px}
+.dialog-head p{font-size:12px;color:#8d949d;margin:0}
+.dialog-close{border:0;background:#f5f6f7;color:#666f78;font-size:23px;width:34px;height:34px;border-radius:9px}
+.component-catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.catalog-card{display:flex;align-items:center;gap:12px;text-align:left;padding:16px;border:1px solid #e9ecf0;background:#fff;border-radius:13px;min-height:93px}
+.catalog-card:hover:not(:disabled){background:#fff9f6;border-color:#ffbb9b}
+.catalog-card:disabled{opacity:.57;cursor:default}
+.catalog-icon{width:39px;height:39px;flex-basis:39px;font-size:21px}
+.catalog-mark{font-size:12px;color:#fc7344;font-weight:750;flex:0 0 auto}
+.catalog-card.is-added .catalog-mark{font-size:10px;color:#a7adb4}
+@media(max-width:1150px){.workspace-toolbar{gap:8px}.workspace-toolbar .topnav #nav{gap:2px}.task-options .choice-tile{padding:12px 10px;min-height:99px}}
+@media(max-width:860px){.workspace-toolbar{position:sticky}.shell{min-height:0}.aside{gap:13px}.prompt{min-height:320px}}
+@media(max-width:540px){.workspace-toolbar{min-height:60px;gap:3px;padding:0 9px}.workspace-toolbar .topnav #nav{min-height:60px}.workspace-toolbar .topnav button.nav-item{font-size:11.5px;padding:19px 8px}.workspace-toolbar .topnav button.nav-add{font-size:11px;padding:9px 10px}.workspace-toolbar .topactions .btn{padding:8px 7px;font-size:10px}.workspace-heading h1{font-size:23px}.task-main-card{padding:18px 15px 2px}.task-options{grid-template-columns:1fr;gap:7px}.task-options .choice-tile{min-height:62px;padding:11px}.task-options .choice-tile small{margin:0}.component-catalog{grid-template-columns:1fr}.component-dialog{padding:18px}.mode-panel,.partial-panel,.custom-partial{padding:15px}.mode-row{gap:5px}.mode-choice{padding:11px 7px;min-height:81px}.mode-choice strong{font-size:11px}.mode-choice small{font-size:9.5px}}
+
+/* v2.1 — canvas-first dashboard with 70/30 split, cards on the home screen */
+:root{--canvas:#f7f8fa;--outline:#eceef1;--ink:#25282d}
+body{background:var(--canvas)}
+.workspace-toolbar.dashboard-toolbar{height:60px;min-height:60px;background:#fff;border-bottom:1px solid var(--outline);display:flex;justify-content:flex-end;align-items:center;padding:0 clamp(14px,2.6vw,40px);position:sticky;top:0;z-index:40}
+.workspace-toolbar.dashboard-toolbar .topnav{display:none!important}
+.workspace-toolbar .toolbar-spacer{flex:1}
+.workspace-toolbar.dashboard-toolbar .topactions{display:flex;justify-content:flex-end;gap:9px;padding:0}
+.workspace-toolbar.dashboard-toolbar .topactions .btn{font-size:12px;padding:9px 15px}
+.shell{display:grid!important;grid-template-columns:minmax(0,7fr) minmax(290px,3fr)!important;max-width:none;width:100%;margin:0;min-height:calc(100vh - 60px);align-items:stretch}
+main#workspace-main{width:100%;max-height:none!important;overflow:visible!important;padding:clamp(24px,3.1vw,49px) clamp(22px,3.2vw,55px) 90px;background:var(--canvas)}
+.workspace-heading{margin-bottom:26px}
+.workspace-heading h1{font-size:clamp(25px,2.3vw,33px);font-weight:800;letter-spacing:-1px;color:var(--ink);margin:0 0 8px}
+.workspace-heading .sub{font-size:13px;color:#9298a0;line-height:1.6;margin:0}
+.aside{grid-column:auto!important;width:100%;max-height:calc(100vh - 60px)!important;overflow-y:auto;position:sticky;top:60px;align-self:start;border-left:1px solid var(--outline);background:#fff;padding:24px clamp(15px,1.8vw,29px);gap:16px}
+.aside .preview-panel{margin:0}
+.previewarea{height:clamp(125px,14vw,190px)!important;aspect-ratio:auto;border-radius:13px}
+.aside .prompt{height:clamp(360px,46vh,640px)!important;min-height:350px!important;max-height:none!important;font-size:11.5px;line-height:1.85}
+.prompt-panel{min-width:0}
+.copy-main{width:100%}
+.dashboard-purpose{box-shadow:0 4px 28px rgba(29,36,51,.035);padding:23px 25px 7px;border-radius:18px;border:1px solid var(--outline)}
+.dashboard-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:0 0 21px}
+.dashboard-kicker{font-size:10px;font-weight:800;color:#e76a3a;letter-spacing:.5px;margin-bottom:8px}
+.dashboard-card-head h2,.dashboard-board-head h2,.dashboard-editor-heading h2{font-size:19px;font-weight:800;letter-spacing:-.55px;margin:0 0 7px;color:#262a31}
+.dashboard-card-head p,.dashboard-board-head p,.dashboard-editor-heading p{font-size:12px;color:#959ca4;margin:0;line-height:1.55}
+.fixed-label{display:inline-block;padding:7px 10px;border:1px solid #eceff2;border-radius:8px;background:#fafbfc;color:#a4aab2;font-size:10px;white-space:nowrap}
+.task-options .choice-tile{min-height:82px;background:#f8f9fa;border-color:#edf0f2;border-radius:12px;padding:14px 13px}
+.task-options .choice-tile.selected{background:#fff4ef;border-color:#fa8f67}
+.task-options .choice-tile strong{font-size:13px}
+.dashboard-purpose .field{margin-bottom:22px}
+.dashboard-purpose .field:last-child{margin-bottom:0}
+.dashboard-purpose textarea{min-height:60px;background:#fafbfc}
+.dashboard-board-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:34px 0 17px}
+.dashboard-board-head .small-count{margin-left:3px}
+.dashboard-add-head{font-size:11.5px!important;padding:9px 12px!important;white-space:nowrap;border:1px solid #e7eaee;color:#545b65;background:#fff}
+.dashboard-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,225px),1fr));gap:15px;align-items:stretch}
+.board-card{position:relative;border:1px solid #eaedf0;background:#fff;box-shadow:0 5px 23px rgba(34,44,65,.045);border-radius:15px;min-height:207px;transition:transform .15s,border-color .15s,box-shadow .15s;overflow:hidden}
+.board-card:hover{transform:translateY(-2px);border-color:#e5ded8;box-shadow:0 9px 28px rgba(39,44,56,.07)}
+.board-card.is-editing{border-color:#ff965f;box-shadow:0 0 0 1px #ffc3a3 inset,0 8px 28px rgba(239,111,52,.065)}
+.board-card-main{display:flex;flex-direction:column;width:100%;height:100%;padding:18px 18px 14px;background:transparent;border:0;text-align:left;color:inherit;min-height:207px}
+.board-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;gap:9px;padding-right:17px}
+.board-card-icon{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:#fff2eb;color:#eb6733;font-size:19px}
+.board-card-status{font-size:10px;color:#b1b7be;font-weight:650}
+.board-card.is-editing .board-card-status{color:#e16c41}
+.board-card-title{font-size:15px;letter-spacing:-.3px;font-weight:790;color:#252a31}
+.board-card-rule{height:1px;width:100%;background:#eff0f2;margin:13px 0}
+.board-card-details{display:flex;flex-direction:column;gap:10px;min-height:46px}
+.board-card-details>span{display:grid;grid-template-columns:36px minmax(0,1fr);gap:6px;align-items:start;line-height:1.4}
+.board-card-details b{font-size:10.5px;font-weight:650;color:#a2a8b0}
+.board-card-details>span>span{font-size:11px;font-weight:550;color:#646b74;overflow-wrap:anywhere}
+.board-card-footer{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-top:auto;padding-top:15px;color:#949ba4;font-size:10.5px;font-weight:700}
+.board-card.is-editing .board-card-footer{color:#ed6b36}
+.board-card-remove{position:absolute;right:13px;top:14px;border:0;background:#f6f7f8;color:#abb0b7;width:23px;height:23px;border-radius:7px;font-size:17px;line-height:1;display:grid;place-items:center}
+.board-card-remove:hover{background:#fff0eb;color:#de6836}
+.board-add-card{min-height:207px;border:1.5px dashed #d9dee4;background:#fff;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center;color:#59636c}
+.board-add-card:hover{border-color:#f29b74;background:#fff9f6}
+.board-add-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:#fff3ec;color:#ed733f;font-size:26px;line-height:1}
+.board-add-card strong{font-size:13px;font-weight:780}
+.board-add-card small{font-size:11px;color:#a3aab2;line-height:1.6}
+.dashboard-editor{margin-top:25px;padding:24px 26px 27px;background:#fff;border:1px solid #e9edf0;border-radius:17px;box-shadow:0 4px 22px rgba(25,35,53,.035);scroll-margin-top:84px;min-width:0}
+.dashboard-editor-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:22px;padding-bottom:17px;border-bottom:1px solid #eef0f2}
+.dashboard-editor-heading .editor-close{font-size:11px;white-space:nowrap;background:#f8f9fa}
+.dashboard-editor .sect,.dashboard-editor .mode-panel,.dashboard-editor .surface-card{box-shadow:none}
+.dashboard-editor .surface-stack{gap:14px}
+.dashboard-editor .block-header{margin-top:0}
+@media(max-width:1130px){.dashboard-board{grid-template-columns:repeat(2,minmax(0,1fr))}.task-options{grid-template-columns:repeat(3,minmax(0,1fr))}.task-options .choice-tile{padding:10px;min-height:91px}.task-options .choice-tile small{font-size:10px}}
+@media(max-width:850px){.shell{grid-template-columns:minmax(0,1fr)!important}.aside{position:relative;top:auto;max-height:none!important;border-left:0;border-top:1px solid var(--outline);padding:22px}.aside .previewarea{height:185px!important}.aside .prompt{min-height:300px!important;height:370px!important}main#workspace-main{padding:25px 20px 36px}.dashboard-board{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}}
+@media(max-width:550px){.workspace-toolbar.dashboard-toolbar{height:56px;min-height:56px;padding:0 15px}.workspace-toolbar.dashboard-toolbar .topactions .btn{font-size:11px;padding:8px 10px}.workspace-heading h1{font-size:26px}.dashboard-purpose{padding:18px 15px 3px}.dashboard-card-head h2{font-size:17px}.dashboard-board-head h2{font-size:18px}.dashboard-board{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.board-card,.board-card-main,.board-add-card{min-height:182px}.board-card-main{padding:13px}.board-card-title{font-size:13px}.board-card-details>span{grid-template-columns:1fr;gap:3px}.board-card-details>span>span{font-size:10px}.board-card-top{margin-bottom:9px}.board-card-remove{right:9px;top:9px}.board-card-rule{margin:10px 0}.board-add-card small{font-size:10px}.dashboard-editor{padding:17px 14px}.dashboard-board-head{align-items:end}.dashboard-add-head{display:none}.task-options{grid-template-columns:1fr}.task-options .choice-tile{min-height:57px;padding:11px}.task-options .choice-tile small{margin-top:0}}
+
+
+/* v2.2 — prompt language and explicit opt-in to browser persistence */
+.save-switch{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:37px;border:1px solid #e4e7ea;border-radius:10px;background:#fff;color:#42464d;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;user-select:none;white-space:nowrap}
+.save-switch:hover{background:#f7f8f9}
+.save-switch:has(input:checked){border-color:#ffd3bd;background:#fff7f2;color:#d85b26}
+.save-switch input{width:16px;height:16px;accent-color:#f36a36;cursor:pointer;margin:0}
+.save-switch:focus-within{outline:2px solid #f4a27d;outline-offset:2px}
+.prompt-language{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:4px;border-radius:10px;border:1px solid #eff0f2;background:#f6f7f8}
+.prompt-language button{min-height:36px;border:1px solid transparent;background:transparent;border-radius:8px;color:#8a9097;font-size:12px;font-weight:700;cursor:pointer}
+.prompt-language button.active{background:#fff;color:#272b32;border-color:#e9ecf0;box-shadow:0 1px 5px rgba(0,0,0,.055)}
+.prompt-language button:focus-visible{outline:2px solid #f59167;outline-offset:2px}
+.prompt-language-note{font-size:10.5px;color:#8c929a;margin:-6px 0 0;line-height:1.5}
+@media(max-width:550px){.save-switch{padding:7px 9px;gap:5px;font-size:11px}}
+
+
+/* v2.3 — refined hierarchy, compact selected-state pill and modal editor */
+.workspace-toolbar.dashboard-toolbar{background:#fff}
+.save-switch{border:1px solid #e7eaf0;border-radius:100px;background:#fff;color:#626b79;min-height:40px;padding:8px 16px;gap:8px;box-shadow:0 2px 9px rgba(20,32,50,.035);font-size:12px;font-weight:600}
+.save-switch:has(input:checked){background:#f5f8ff;border-color:#6790ff;color:#4673ed;box-shadow:0 0 0 1px rgba(77,122,255,.08)}
+.save-switch:hover{background:#f7f9fc}
+.save-switch input{appearance:none;-webkit-appearance:none;display:inline-grid;place-items:center;width:16px;height:16px;flex:0 0 16px;border:1.5px solid #bfc6d2;border-radius:50%;margin:0;background:#fff;cursor:pointer}
+.save-switch input:checked{border-color:#5382fa;background:#5382fa}
+.save-switch input:checked::after{content:'✓';color:#fff;font-size:11px;line-height:1;font-weight:700}
+.save-switch:focus-within{outline:2px solid #96b4ff;outline-offset:2px}
+.workspace-heading h1{font-size:clamp(22px,2vw,26px);font-weight:640;letter-spacing:-.65px}
+.dashboard-card-head h2,.dashboard-board-head h2,.dashboard-editor-heading h2,.dialog-head h2{font-size:17px;font-weight:680;letter-spacing:-.3px}
+.dashboard-card-head p,.dashboard-board-head p,.dashboard-editor-heading p{font-size:12px}
+.dashboard-kicker{font-weight:650}
+.task-options .choice-tile{min-height:106px;padding:20px 16px;gap:10px}
+.task-options .choice-tile strong{font-size:clamp(16px,1.35vw,19px);font-weight:680;line-height:1.35;letter-spacing:-.35px}
+.task-options .choice-tile small{font-size:12px;line-height:1.5}
+.task-options .choice-tile.selected strong{font-weight:690}
+.board-card-title{font-size:16px;font-weight:680}
+.board-add-card strong{font-weight:680}
+.catalog-card strong,.dialog-head h2{font-weight:680}
+.sect summary{font-weight:660}
+.field label,.field .fieldlabel{font-weight:650}
+.dashboard-add-head{display:none!important}
+.preview-caption{display:none}
+.preview-caption.is-visible{display:inline}
+/* One standard circular icon treatment for close/remove actions */
+.dialog-close,.board-card-remove,.editor-close,.reference-remove{border:1px solid #ebedf0!important;border-radius:50%!important;display:inline-grid!important;place-items:center!important;padding:0!important;width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;background:#f7f8fa!important;color:#858d98!important;line-height:1!important;font-size:19px!important;font-weight:400!important;box-shadow:none!important;flex:0 0 32px}
+.dialog-close:hover,.board-card-remove:hover,.editor-close:hover,.reference-remove:hover{border-color:#ffd6c3!important;background:#fff2eb!important;color:#dd673b!important}
+.board-card-remove{position:absolute;top:13px;right:13px;width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;font-size:17px!important}
+/* dialog anchored independently of the growing component board */
+.editor-shade{position:fixed;inset:0;z-index:75;background:rgba(18,25,36,.42);display:flex;align-items:center;justify-content:center;padding:26px;backdrop-filter:blur(3px)}
+.editor-shade .dashboard-editor{width:min(870px,100%);max-height:calc(100dvh - 52px);margin:0!important;overflow:auto;overscroll-behavior:contain;padding:0 28px 28px;background:#fff;box-shadow:0 24px 96px rgba(15,23,42,.18);border:1px solid #e8ecf0;border-radius:20px;scroll-margin:0}
+.editor-shade .dashboard-editor-heading{position:sticky;top:0;z-index:3;background:#fff;align-items:center;min-height:90px;padding:21px 0 16px;margin-bottom:22px}
+.editor-shade .dashboard-editor-heading .dashboard-kicker{font-size:10px;font-weight:600}
+.editor-shade .dashboard-editor-heading h2{font-size:20px;font-weight:680}
+.editor-shade .dashboard-editor-heading p{font-size:12px;max-width:650px}
+body.has-editor-dialog{overflow:hidden}
+@media(max-width:850px){.task-options .choice-tile strong{font-size:16px}.editor-shade{padding:14px}.editor-shade .dashboard-editor{max-height:calc(100dvh - 28px);padding:0 19px 25px}}
+@media(max-width:550px){.save-switch{padding:7px 11px}.workspace-heading h1{font-size:22px}.dashboard-card-head h2,.dashboard-board-head h2{font-size:16px}.task-options .choice-tile{min-height:73px;padding:14px}.task-options .choice-tile strong{font-size:16px}.task-options .choice-tile small{font-size:11px}.board-card-title{font-size:14px}.editor-shade{padding:8px}.editor-shade .dashboard-editor{max-height:calc(100dvh - 16px);padding:0 14px 20px;border-radius:16px}.editor-shade .dashboard-editor-heading{min-height:75px;padding:16px 0 12px}.editor-shade .dashboard-editor-heading h2{font-size:18px}.editor-shade .dashboard-editor-heading p{font-size:11px}}
+
+
+/* v2.4 — removable parameter chips within dashboard component cards */
+.board-card{display:flex;flex-direction:column;min-height:206px;overflow:visible}
+.board-card-top{margin:0 0 14px;padding:0;align-items:center}
+.board-card{padding:17px 16px 13px}
+.board-card-remove{position:static!important;min-width:27px!important;width:27px!important;height:27px!important;min-height:27px!important;flex:0 0 27px!important}
+.board-card-heading{border:0;background:transparent;display:flex;gap:8px;align-items:center;flex-wrap:wrap;text-align:left;padding:0;color:inherit;cursor:pointer}
+.board-card-heading:hover .board-card-title{color:#e76a3a}
+.board-card-mode{font-size:10px;font-weight:600;color:#9ba3ae}
+.board-card-rule{margin:12px 0 13px}
+.board-chip-list{display:flex;align-content:flex-start;align-items:flex-start;flex-wrap:wrap;gap:7px;min-height:54px}
+.component-pill{display:inline-flex;align-items:center;min-height:31px;min-width:0;max-width:100%;gap:3px;padding:3px 4px 3px 10px;background:#f6f7f9;color:#545e6b;border:1px solid #e9edf1;border-radius:999px;white-space:nowrap;font-size:10.5px;font-weight:600;line-height:1.2}
+.component-pill-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.component-pill-remove{width:22px;height:22px;border:0;background:transparent;border-radius:50%;color:#9da5af;font-size:16px;line-height:1;flex:0 0 22px;display:grid;place-items:center;cursor:pointer}
+.component-pill-remove:hover{background:#fff0e9;color:#db622e}
+.component-pill.is-locked{padding:7px 11px;color:#939ba5}
+.board-no-chips{font-size:10.5px;color:#a9b0b7;line-height:1.6}
+.board-card-bottom{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-top:auto;padding-top:14px}
+.board-card-edit,.board-card-restore{border:0;background:transparent;min-height:26px;padding:2px;color:#77818d;font-size:10.5px;font-weight:650;cursor:pointer}
+.board-card-edit:hover,.board-card-restore:hover{color:#e76a3a}
+.board-card-restore{border-radius:7px;border:1px solid #f0dfd5;background:#fff8f4;padding:5px 7px;color:#df774b;white-space:nowrap}
+.include-scope-panel{margin:0 0 18px;padding:16px;background:#fafbfc;border:1px solid #ecedf0;border-radius:13px}
+.include-scope-heading{font-size:13px;font-weight:650;color:#303640}
+.include-scope-panel p{font-size:11px;color:#929aa3;margin:5px 0 13px}
+.include-scope-list{display:flex;flex-wrap:wrap;gap:8px}
+.include-scope-choice{display:inline-flex;align-items:center;gap:7px;padding:9px 11px;background:#fff;border:1px solid #e8eaed;border-radius:9px;font-size:11px;color:#646d78;cursor:pointer}
+.include-scope-choice:has(input:checked){background:#fff6f0;border-color:#ffc49e;color:#e56a34}
+.include-scope-choice input{accent-color:#f37949;margin:0}
+@media(max-width:550px){.board-card{padding:12px 10px 11px;min-height:192px}.board-card-top{margin-bottom:11px}.board-chip-list{gap:5px}.component-pill{font-size:9.5px;padding-left:8px;min-height:27px}.component-pill-remove{width:19px;height:19px;flex-basis:19px;font-size:14px}.board-card-mode{font-size:9px}}
+
+
+/* v2.5 — neutral square checkboxes and one fixed footer */
+/* Every in-editor checkbox shares one simple design; the separate save toggle remains a pill. */
+input[type="checkbox"]:not(#save-enabled){
+  -webkit-appearance:none;appearance:none;display:inline-grid;place-items:center;
+  width:15px!important;height:15px!important;min-width:15px;min-height:15px;
+  flex:0 0 15px;margin:0;border:1.5px solid #b7bdc5;border-radius:2px;
+  background:#fff;box-shadow:none;vertical-align:middle;cursor:pointer;accent-color:initial;
+}
+input[type="checkbox"]:not(#save-enabled):checked{background:#424850;border-color:#424850}
+input[type="checkbox"]:not(#save-enabled):checked::after{
+  content:'✓';color:#fff;font-size:12px;font-weight:600;line-height:1;
+}
+input[type="checkbox"]:not(#save-enabled):focus-visible{outline:2px solid #9299a5;outline-offset:2px}
+/* No colored backgrounds for checked items in partial / inclusion / reference choices. */
+.scope-list{gap:11px 15px}
+.scope-label,.include-scope-choice,
+.scope-label:has(input:checked),.include-scope-choice:has(input:checked),
+.reference-product-options .scope-label,
+.reference-product-options .scope-label:has(input:checked){
+  display:inline-flex;align-items:center;gap:8px;min-height:26px;
+  border:0!important;border-radius:4px!important;padding:3px 2px!important;
+  background:transparent!important;box-shadow:none!important;
+  color:#434a53!important;font-size:12px;font-weight:500;
+}
+.scope-label:hover,.include-scope-choice:hover{background:#f6f7f8!important}
+.scope-label input,.include-scope-choice input{color:inherit}
+.include-scope-panel{background:#fff;padding:15px 16px}
+.include-scope-heading{margin-bottom:12px}
+.include-scope-list{gap:7px 14px}
+.include-scope-panel p{display:none}
+.status:empty{display:none}
+/* Desktop: aside itself never scrolls; only prompt text scrolls. Actions remain visible. */
+@media (min-width:851px){
+  .shell>.aside{
+    height:calc(100dvh - 60px);max-height:calc(100dvh - 60px)!important;
+    top:60px;overflow:hidden!important;overscroll-behavior:contain;
+    display:flex;flex-direction:column;gap:12px;
+    padding:15px clamp(12px,1.4vw,24px)!important;
+  }
+  .aside .preview-panel{flex:0 0 auto;padding:12px}
+  .aside .previewarea{height:clamp(88px,12vh,132px)!important}
+  .aside .prompt-panel{
+    flex:1 1 0;min-height:0;max-height:none!important;overflow:hidden;
+    display:flex;flex-direction:column;gap:10px;padding:14px;
+  }
+  .aside .prompthead,.aside .prompt-language,.aside .prompt-language-note{flex:0 0 auto}
+  .aside .prompt-scroll{
+    flex:1 1 0;min-height:0;max-height:none;overflow-y:auto;
+    overscroll-behavior:contain;border:1px solid #e8ebee;border-radius:11px;
+    background:#f9fafb;scrollbar-width:thin;
+  }
+  .aside .prompt-scroll .prompt{
+    height:auto!important;min-height:100%!important;max-height:none!important;
+    overflow:visible!important;box-shadow:none;border:0;border-radius:0;
+    background:transparent;padding:16px;font-size:12px;line-height:1.75;
+  }
+  .aside .prompt-scroll #warnings{padding:0 12px 12px}
+  .aside .prompt-actions-fixed{flex:0 0 auto;margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:5px;background:#fff}
+  .aside .copy-main{min-height:49px}
+  .aside .secondary-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .aside .secondary-actions .btn{white-space:normal;min-height:39px;font-size:11px;line-height:1.4;padding:8px 5px}
+}
+/* Stacked view: one ordinary page scrollbar; prompt itself doesn't need another. */
+@media (max-width:850px){
+  .aside{overflow:visible!important;height:auto!important;max-height:none!important}
+  .aside .prompt-panel{min-height:0}
+  .aside .prompt-scroll{height:auto;max-height:none;overflow:visible}
+  .aside .prompt-scroll .prompt{
+    height:auto!important;min-height:260px!important;max-height:none!important;
+    overflow:visible!important;padding:16px;
+  }
+  .prompt-actions-fixed{position:sticky;bottom:0;z-index:5;display:flex;flex-direction:column;gap:8px;
+    background:#fff;padding:10px 0 4px;border-top:1px solid #eef0f2}
+  .secondary-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .secondary-actions .btn{white-space:normal;line-height:1.4;min-height:40px}
+}
+
+
+/* V2.6 — independently editable reference cards and purpose-specific task modes */
+.task-options{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px}
+.task-options .choice-tile{min-height:86px;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:17px 18px}
+.task-options .choice-tile strong{font-size:14px;font-weight:650;letter-spacing:-.25px}
+.task-options .choice-tile small{font-size:11px;color:#9299a1;margin:0;line-height:1.5}
+.purpose-custom{padding:15px 17px;background:#fafbfc;border-radius:12px;border:1px solid #ebedf0;margin-top:0}
+.purpose-custom textarea{min-height:96px;line-height:1.7}
+.board-card-bottom{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important}
+.board-card-edit{display:flex!important;width:100%!important;min-height:42px!important;justify-content:center!important;align-items:center!important;border:1px solid #e1e5e9!important;border-radius:10px!important;background:#f7f8fa!important;padding:11px 14px!important;color:#333940!important;font-size:12px!important;font-weight:650!important}
+.board-card-edit:hover{background:#f0f2f4!important;border-color:#ccd3db!important}
+.board-card-restore{align-self:flex-start}
+.reference-limit-note{font-size:11px;color:#9298a0}
+.standalone-reference{margin-bottom:0}
+.component-catalog .catalog-card:disabled{opacity:.5}
+@media(max-width:600px){.task-options{grid-template-columns:1fr!important}.task-options .choice-tile{min-height:66px;padding:12px 14px}.purpose-custom{padding:12px}}
+
+/* v2.7: consistent top actions, accessible centered circular close icons, purpose conditions */
+.workspace-toolbar.dashboard-toolbar .save-switch,
+.workspace-toolbar.dashboard-toolbar .save-switch:has(input:checked){
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:#fff;border:1px solid #e4e6e8;color:#4d5056;
+  border-radius:10px;box-shadow:none;padding:10px 14px;
+  min-height:0;font-size:12px;font-weight:700;line-height:normal;
+}
+.workspace-toolbar.dashboard-toolbar .save-switch:hover{background:#f6f7f8;border-color:#d2d6da}
+.workspace-toolbar.dashboard-toolbar .save-switch input{
+  width:16px;height:16px;flex:0 0 16px;appearance:none;
+  background:#fff;border:1.5px solid #9ca3af;border-radius:4px;
+  display:inline-grid;place-items:center;margin:0;box-shadow:none;
+}
+.workspace-toolbar.dashboard-toolbar .save-switch input:checked{background:#545b65;border-color:#545b65}
+.workspace-toolbar.dashboard-toolbar .save-switch input:checked::after{content:'✓';color:white;font-size:12px;font-weight:750;line-height:1}
+.workspace-toolbar.dashboard-toolbar .save-switch:focus-within{outline:2px solid #a7adb6;outline-offset:2px}
+.dialog-close,.board-card-remove,.editor-close,.reference-remove,.component-pill-remove{
+  font-size:0!important;line-height:0!important;display:inline-grid!important;place-items:center!important;
+  text-align:center!important;vertical-align:middle!important;
+}
+.dialog-close::before,.board-card-remove::before,.editor-close::before,.reference-remove::before,.component-pill-remove::before{
+  content:'';display:block;width:13px;height:13px;flex-shrink:0;
+  background:linear-gradient(currentColor,currentColor) center/13px 1.5px no-repeat,
+             linear-gradient(currentColor,currentColor) center/1.5px 13px no-repeat;
+  transform:rotate(45deg);margin:0;
+}
+.component-pill-remove::before{width:10px;height:10px;background-size:10px 1.3px,1.3px 10px}
+.purpose-requirements{margin:3px 0 23px}
+.purpose-requirements label{display:inline-flex;gap:8px;align-items:center}
+.optional-field-tag{font-size:11px;color:#929aa4;font-weight:500}
+.purpose-requirements textarea{min-height:92px}
+@media(max-width:550px){
+ .workspace-toolbar.dashboard-toolbar .save-switch,.workspace-toolbar.dashboard-toolbar .save-switch:has(input:checked){padding:8px 10px;font-size:11px}
+}
+
+/* v2.8 — Inline editing in the left 70% workspace, persistent right preview */
+@media(min-width:851px){
+  .shell{height:calc(100dvh - 60px);min-height:0!important;align-items:stretch}
+  main#workspace-main{
+    height:calc(100dvh - 60px);min-height:0;max-height:calc(100dvh - 60px)!important;
+    overflow-y:auto!important;overscroll-behavior:contain;scrollbar-width:thin;
+    padding-bottom:70px;
+  }
+  .shell>.aside{position:relative!important;top:0!important;align-self:stretch!important;
+    height:calc(100dvh - 60px)!important;max-height:calc(100dvh - 60px)!important;
+  }
+}
+body.workspace-editing .workspace-heading{margin-bottom:15px}
+body.workspace-editing .workspace-heading h1{font-size:clamp(21px,2vw,27px);font-weight:650;letter-spacing:-.5px}
+body.workspace-editing .workspace-heading .sub{font-size:12px;margin:0}
+/* Navigation sits inside the left work area, not over the right preview. */
+.editor-tab-strip{display:flex;align-items:center;gap:5px;min-height:54px;max-width:100%;
+  overflow-x:auto;scrollbar-width:thin;white-space:nowrap;
+  border-bottom:1px solid #e7eaee;margin-bottom:18px;
+  position:sticky;top:-1px;z-index:12;background:rgba(255,255,255,.97);backdrop-filter:blur(9px)
+}
+.editor-tab{flex:0 0 auto;border:0;border-bottom:2px solid transparent;
+  background:transparent;color:#858b94;font-size:12px;font-weight:560;
+  padding:15px 13px 13px;min-height:49px;cursor:pointer}
+.editor-tab:hover{color:#222831;background:#f7f8fa}
+.editor-tab.active{color:#292d33;border-bottom-color:#ff6733;font-weight:670}
+.editor-tab.home-tab{color:#6f7782}
+.editor-single-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:5px 0 15px;border-bottom:1px solid #e9ecef;margin-bottom:18px}
+.editor-home-button{display:inline-flex;align-items:center;gap:8px;border:0;background:none;
+  color:#636b76;padding:7px 2px;font-size:12px;font-weight:600}
+.editor-home-button:hover{color:#e4693a}
+.editor-home-button span{font-size:18px;line-height:1}
+.editor-autosave-indicator{font-size:10.5px;color:#a0a6ae}
+/* Replace the old full-screen modal with an ordinary in-column editor. */
+#fields .inline-editor{width:100%;max-height:none;min-height:0;overflow:visible;
+  margin:0!important;padding:23px clamp(16px,2.5vw,32px) 27px;
+  border:1px solid #e9ecf0;border-radius:16px;
+  box-shadow:0 4px 20px rgba(31,42,55,.025);background:#fff}
+#fields .inline-editor .dashboard-editor-heading{position:static!important;background:transparent!important;
+  min-height:0!important;margin:0 0 22px!important;padding:0 0 18px!important;
+  display:flex;align-items:center;justify-content:space-between}
+#fields .inline-editor .dashboard-editor-heading h2{font-size:17px;font-weight:650;margin-bottom:5px}
+#fields .inline-editor .dashboard-editor-heading p{font-size:11.5px;line-height:1.5}
+#fields .inline-editor .editor-close{flex:0 0 32px!important;width:32px!important;height:32px!important}
+.editor-end-actions{padding-top:16px;margin-top:22px;border-top:1px solid #eff1f3;display:flex;justify-content:flex-end}
+.editor-done{min-height:42px;min-width:158px;background:#f7f8fa;border-color:#e3e6e9;font-weight:620}
+/* Uniform, genuinely centered SVG crosses for all small dismiss buttons. */
+.dialog-close,.board-card-remove,.editor-close,.reference-remove,.component-pill-remove{
+  display:grid!important;place-items:center!important;align-content:center!important;justify-content:center!important;
+  padding:0!important;line-height:0!important;font-size:0!important;text-indent:-9999px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M3.6 3.6l8.8 8.8M12.4 3.6l-8.8 8.8' stroke='%238c95a0' stroke-width='1.65' stroke-linecap='round'/%3E%3C/svg%3E")!important;
+  background-position:center center!important;background-repeat:no-repeat!important;background-size:14px 14px!important;
+}
+.dialog-close::before,.board-card-remove::before,.editor-close::before,.reference-remove::before,.component-pill-remove::before{content:none!important;display:none!important}
+.component-pill-remove{background-size:11px 11px!important}
+@media(max-width:850px){
+  body.workspace-editing .shell{display:flex!important;flex-direction:column}
+  body.workspace-editing main#workspace-main{order:0}
+  body.workspace-editing .aside{order:1}
+  .editor-tab-strip{top:0}
+  #fields .inline-editor{padding:17px 15px 24px}
+  .editor-end-actions .editor-done{width:100%}
+}
+
+/* Editing is designed around the live preview: more room for the cube while editing. */
+@media(min-width:851px){
+  body.workspace-editing .aside .previewarea{height:clamp(172px,23vh,240px)!important}
+  body.workspace-editing .aside .preview-panel{padding:14px}
+}
+/* On narrow screens, pin the preview above the editor instead of burying it below. */
+@media(max-width:850px){
+  body.workspace-editing .shell{display:flex!important;flex-direction:column}
+  body.workspace-editing .aside{display:contents!important}
+  body.workspace-editing .aside .preview-panel{
+    order:-1;position:sticky;top:56px;z-index:21;background:#fff;
+    margin:0 15px;padding:9px 12px 11px;border:1px solid #e8ebef;
+    border-radius:13px;box-shadow:0 5px 16px rgba(28,36,50,.065)
+  }
+  body.workspace-editing .aside .preview-panel .previewarea{height:clamp(108px,17vh,148px)!important}
+  body.workspace-editing main#workspace-main{order:1;padding-top:16px}
+  body.workspace-editing .aside .prompt-panel{order:2;margin:14px 15px 22px;padding:15px}
+  body.workspace-editing .aside .prompt-panel .prompt-scroll{min-height:220px}
+  body.workspace-editing .aside .prompt-panel .prompt-scroll .prompt{min-height:220px!important}
+}
+
+/* v2.8.1 — fluid workspace + protected right preview/prompt width */
+@media(min-width:851px){
+  .shell{
+    grid-template-columns:minmax(0,1fr) clamp(370px,30vw,470px)!important;
+  }
+  main#workspace-main{min-width:0;width:auto}
+  .shell>.aside{min-width:370px;width:auto}
+  .aside .previewarea{width:100%}
+  .aside .prompt-panel{min-width:0}
+}
+@media(max-width:850px){
+  .shell{grid-template-columns:minmax(0,1fr)!important}
+  .aside{min-width:0}
+}
+
+
+/* v2.9 — transactional editor + mobile prompt menu */
+.editor-tab-strip{margin-bottom:17px}
+.editor-single-nav{display:none!important}
+.editor-autosave-indicator{display:none!important}
+#fields .inline-editor .editor-close{border-radius:50%;background-position:center!important}
+.editor-done{background:#252b33!important;border-color:#252b33!important;color:#fff!important}
+.mobile-action-bar,.mobile-menu-backdrop{display:none}
+@media(max-width:850px){
+  body,body.workspace-editing{padding-bottom:calc(78px + env(safe-area-inset-bottom))!important}
+  .shell,.shell body.workspace-editing{min-height:0}
+  body.workspace-editing .shell{display:block!important}
+  body.workspace-editing main#workspace-main,main#workspace-main{width:100%!important;max-width:none!important;order:initial!important;padding:19px 15px 38px!important}
+  .shell>.aside,body.workspace-editing .shell>.aside{
+    display:none!important;position:fixed!important;z-index:1101!important;
+    top:0!important;right:0!important;bottom:calc(72px + env(safe-area-inset-bottom))!important;left:auto!important;
+    height:auto!important;min-height:0!important;max-height:none!important;
+    width:min(430px,100vw)!important;min-width:0!important;
+    padding:15px!important;margin:0!important;border-left:1px solid #e6e9ed!important;
+    background:#fff!important;overflow:hidden!important;flex-direction:column!important;gap:0!important;
+    box-shadow:-10px 0 34px rgba(18,24,32,.11)!important;
+  }
+  body.mobile-prompt-open .shell>.aside,body.mobile-prompt-open.workspace-editing .shell>.aside{display:flex!important}
+  .shell>.aside .preview-panel,body.workspace-editing .aside .preview-panel{display:none!important}
+  .shell>.aside .prompt-panel,body.workspace-editing .aside .prompt-panel{
+    display:flex!important;flex:1 1 auto!important;min-height:0!important;max-height:none!important;
+    width:100%!important;margin:0!important;padding:15px!important;order:0!important;overflow:hidden!important;
+  }
+  .shell>.aside .prompt-panel .prompt-scroll{min-height:0!important;flex:1 1 auto!important;overflow-y:auto!important}
+  .shell>.aside .prompt-panel .prompt-scroll .prompt{min-height:0!important;height:auto!important;max-height:none!important;overflow:visible!important}
+  .shell>.aside .prompt-actions-fixed{flex:0 0 auto!important;margin-top:auto!important;padding-top:10px!important}
+  .shell>.aside #copy{display:none!important}
+  .shell>.aside .secondary-actions{display:flex!important}
+  .mobile-menu-backdrop{position:fixed;inset:0 0 0 0;background:rgba(19,24,31,.24);z-index:1100}
+  body.mobile-prompt-open .mobile-menu-backdrop{display:block}
+  .mobile-action-bar{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:1102;
+    gap:9px;align-items:center;padding:11px 14px calc(11px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.97);border-top:1px solid #e5e8ec;box-shadow:0 -3px 20px rgba(0,0,0,.035)
+  }
+  .mobile-copy-button{flex:1;min-width:0;height:48px;border-radius:11px;border:1px solid #242932;background:#242932;color:white;font-size:14px;font-weight:650}
+  .mobile-menu-button{width:48px;height:48px;flex:0 0 48px;border-radius:11px;border:1px solid #e0e4e9;background:#f8f9fa;display:grid;place-items:center}
+  .hamburger-icon{display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center}
+  .hamburger-icon i{display:block;width:19px;height:1.8px;background:#303741;border-radius:1px;transition:transform .15s,opacity .15s}
+  body.mobile-prompt-open .hamburger-icon i:first-child{transform:translateY(6.8px) rotate(45deg)}
+  body.mobile-prompt-open .hamburger-icon i:nth-child(2){opacity:0}
+  body.mobile-prompt-open .hamburger-icon i:last-child{transform:translateY(-6.8px) rotate(-45deg)}
+  .editor-tab-strip{position:sticky;top:0}
+}
+
+/* v2.9.1 · Remove clutter, distinct minus for whole-component removal */
+.board-card-remove{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10' stroke='%238c95a0' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:center!important;background-size:14px 14px!important;border-radius:50%!important}
+.board-card-remove:hover{background-color:#eef0f3!important}
+.dashboard-card-head p,.dashboard-board-head p,.dashboard-editor-heading p,.dialog-head p,.board-add-card small{display:none!important}
+.dashboard-card-head{margin-bottom:15px}
+.task-options .choice-tile{min-height:62px;padding:13px 16px}
+.mode-choice{min-height:47px}
+.mode-choice small{display:none}
+.board-card-restore{font-size:11px}
+@media (max-width:850px){.mobile-action-bar{z-index:1102}}
+
+/* v3.0 — quiet editing header, no gap between global toolbar and component tabs */
+body.workspace-editing .workspace-heading{display:none!important}
+body.workspace-editing main#workspace-main{padding:0 0 65px!important}
+body.workspace-editing #fields{min-width:0}
+body.workspace-editing .editor-tab-strip{
+ margin:0!important;top:0!important;min-height:53px;padding-inline:clamp(22px,3.2vw,55px);
+ border-top:0;background:#fff;box-shadow:none;
+}
+body.workspace-editing #fields .inline-editor{
+ width:auto!important;margin:16px clamp(22px,3.2vw,55px) 0!important;
+}
+.check-all{display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;color:#656d77;
+ font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.check-all input[type=checkbox]{width:15px!important;height:15px!important;flex:0 0 15px;margin:0!important}
+.include-scope-heading,.partial-panel .block-header{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.reference-product-options .fieldtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+@media(max-width:850px){
+ body.workspace-editing main#workspace-main{padding:0 0 105px!important}
+ body.workspace-editing .editor-tab-strip{padding:0 15px!important;top:56px!important}
+ body.workspace-editing #fields .inline-editor{margin:15px 15px 0!important}
+}
+</style>
+</head>
+<body>
+<div class="workspace-toolbar dashboard-toolbar">
+  <nav class="topnav hidden" aria-hidden="true"><div id="nav"></div></nav>
+  <div class="toolbar-spacer" aria-hidden="true"></div>
+  <div class="topactions"><button class="btn" id="reset">기본값 초기화</button><label class="save-switch" for="save-enabled" title="선택하면 작업이 이 브라우저에 자동 저장됩니다. 해제하면 다음 방문 때 초기화됩니다."><input type="checkbox" id="save-enabled"><span>브라우저에 저장</span></label></div>
+</div>
+<div class="shell">
+  <main id="workspace-main">
+    <div class="workspace-heading"><div><h1 id="heading">새 프롬프트</h1><p class="sub hidden" id="description"></p></div><button class="btn subtle-remove hidden" id="remove-active" type="button">컴포넌트 삭제</button></div>
+    <div id="fields"></div>
+  </main>
+  <aside class="aside" id="mobile-prompt-panel" aria-label="종합 프롬프트 및 파일 메뉴">
+    <section class="preview-panel" aria-labelledby="preview-title">
+      <div class="panel-topline"><h2 id="preview-title">미리보기</h2><span class="preview-caption" id="light-direction-caption">빛 방향</span></div>
+      <div class="previewarea"><canvas id="scene" role="img" aria-label="정육면체 카메라와 조명 방향 미리보기"></canvas></div>
+    </section>
+    <section class="prompt-panel" aria-labelledby="prompt-title">
+      <div class="prompthead"><h2 id="prompt-title">종합 프롬프트</h2><span class="count" id="count">0자</span></div>
+      <div class="prompt-language" role="group" aria-label="프롬프트 언어 선택"><button type="button" data-prompt-language="ko" class="active" aria-pressed="true">한국어</button><button type="button" data-prompt-language="en" aria-pressed="false">English</button></div>
+      <p class="prompt-language-note hidden" id="translation-note"></p>
+      <div class="prompt-scroll" aria-label="생성된 프롬프트와 주의사항">
+        <div class="prompt" id="prompt" aria-live="polite"></div>
+        <div id="warnings"></div>
+      </div>
+      <div class="prompt-actions-fixed">
+        <button class="btn primary copy-main" id="copy">프롬프트 복사 <span aria-hidden="true">↗</span></button>
+        <div class="actions secondary-actions"><button class="btn" id="export">파일로 저장</button><button class="btn" id="import">설정 파일 불러오기</button><input class="hidden" type="file" id="file" accept=".json,application/json"></div>
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<div class="mobile-menu-backdrop" id="mobile-menu-backdrop" aria-hidden="true"></div>
+<div class="mobile-action-bar" id="mobile-action-bar">
+  <button type="button" class="mobile-copy-button" id="mobile-copy">프롬프트 복사</button>
+  <button type="button" class="mobile-menu-button" id="mobile-menu-toggle" aria-label="종합 프롬프트 및 파일 메뉴 열기" aria-expanded="false" aria-controls="mobile-prompt-panel"><span class="hamburger-icon" aria-hidden="true"><i></i><i></i><i></i></span></button>
+</div>
+<div class="dialog-shade hidden" id="component-dialog" role="presentation">
+  <div class="component-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-heading">
+    <div class="dialog-head"><div><h2 id="dialog-heading">컴포넌트 추가</h2></div><button class="dialog-close" id="close-dialog" type="button" aria-label="닫기">×</button></div>
+    <div class="component-catalog" id="component-catalog"></div>
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const groups=[
+{id:'task',name:'작업목적',description:'작업 유형을 선택하거나 직접 설명합니다.',fields:[['mode','작업 방식',['새 이미지 제작','레퍼런스 제품 교체','기존 이미지 부분 수정','직접 입력']],['intent','직접 작성',null,'예: 이미지 1의 구도와 배경을 참고하고 이미지 2의 제품으로 교체한다']]},
+{id:'reference',name:'이미지',description:'이미지별 참고할 요소를 설정합니다. 최대 4장까지 추가할 수 있습니다.',fields:[]},
+{id:'camera',name:'카메라',description:'카메라 방향, 높이, 원근감, 프레이밍을 선택합니다.',advanced:true},
+{id:'composition',name:'구도',description:'제품이 화면 안에서 차지하는 위치와 비중을 지정합니다.',fields:[['placement','제품 위치',['중앙','좌측','우측','비대칭','미지정']],['scale','화면 점유율',['크게','보통','작게','미지정']]]},
+{id:'environment',name:'배경',description:'배경과 바닥의 색상과 재질을 각각 선택합니다.',advanced:true},
+{id:'lighting',name:'조명',description:'빛의 방향과 성질, 그림자 표현을 선택합니다.',advanced:true},
+{id:'props',name:'소품',description:'제품을 보조하는 소품의 종류와 배치만 지정합니다.',fields:[['propsMode','소품 구성',['최소화','레퍼런스 유지','없음','사용자 지정']]]},
+{id:'style',name:'스타일',description:'최종 사진의 시각적 성격을 정합니다.',fields:[['render','표현 방식',['상업용 실사 사진','프리미엄 에디토리얼','3D 렌더','라이프스타일 사진','미지정']],['mood','분위기',['깨끗하고 고급스러운','차분하고 절제된','밝고 경쾌한','시네마틱','미지정']]]},
+/* 필수조건은 별도 컴포넌트가 아닌 작업목적의 선택 입력란으로 통합 */];
+const defaults={mode:'레퍼런스 제품 교체',intent:'',refCount:1,ref1:'구도·배경·조명',ref2:'제품',ref3:'모델',ref4:'소품·재질',ref1Enabled:true,ref2Enabled:true,ref3Enabled:false,ref4Enabled:false,ref1Custom:'',ref2Custom:'',ref3Custom:'',ref4Custom:'',ref1ProductLock:false,ref2ProductLock:false,ref3ProductLock:false,ref4ProductLock:false,ref1ProductNote:'',ref2ProductNote:'',ref3ProductNote:'',ref4ProductNote:'',placement:'중앙',scale:'크게',bgMode:'reference',bgColor:'#e7e8eb',bgMaterial:'matte',floorMode:'reference',floorColor:'#e1e2e4',floorMaterial:'matte',space:'기존 레퍼런스 유지',color:'기존 레퍼런스 유지',surface:'기존 레퍼런스 유지',propsMode:'최소화',propsNote:'',render:'상업용 실사 사진',mood:'깨끗하고 고급스러운',lockComposition:'미지정',extra:'',camYaw:0,camPitch:14,camRoll:0,camDistance:4,camFocal:70,camPerspective:65,camFrame:82,camShiftX:0,camShiftY:0,camFocus:'제품 전체 선명',camAperture:8,lightType:'area',lightColorMode:'temperature',lightTemp:5600,lightFilter:'none',lightFilterDensity:45,lightIntensity:90,lightPosX:-100,lightPosY:100,lightDepth:'front',lightSpread:70,lightFeather:65,lightFalloff:'smooth',lightShadows:false,lightShadowDark:42,lightShadowSoft:72,lightShadowLength:45,lightFill:false,lightFillIntensity:30,lightRim:false,lightRimIntensity:35};
+// 이전 v0.1 JSON에 있던 구도 설정을 새 카메라 값으로 옮기는 변환기.
+function migrate(data){let next={...defaults,...Object.fromEntries(Object.entries(data).filter(([k,v])=>Object.hasOwn(defaults,k)&&typeof v===typeof defaults[k]))};if(data.camYaw===undefined){const direction=data.direction||'';if(direction==='좌측 사선')next.camYaw=-35;if(direction==='우측 사선')next.camYaw=35;if(direction==='측면')next.camYaw=75;const height=data.height||'';if(height==='아이레벨')next.camPitch=0;if(height==='하이앵글')next.camPitch=45;if(height==='탑뷰')next.camPitch=85;if(height==='로우앵글')next.camPitch=-15;const framing=data.framing||'';if(framing==='와이드')next.camFrame=50;if(framing==='미디엄')next.camFrame=70;if(framing==='클로즈업')next.camFrame=110;}if(data.lightTemp===undefined){const temp=data.temperature||'';if(temp.includes('따뜻'))next.lightTemp=3200;if(temp.includes('차가'))next.lightTemp=6500;}// 레퍼런스 v0.5 역할 이름과 미지정 상태를 새 UI로 변환한다.
+for(let i=1;i<=4;i++){
+ const k='ref'+i;
+ if(data[k]==='미지정'){next[k+'Enabled']=false;next[k]=defaults[k]}
+ else if(data[k]==='제품 원본')next[k]='제품';
+ else if(data[k]==='모델 원본')next[k]='모델';
+ else if(data[k]==='공간·배경')next[k]='구도·배경·조명';
+ if(data[k]&&data[k]!=='미지정'&&data[k+'Enabled']===undefined)next[k+'Enabled']=true;
+}
+if(data.lightPosX===undefined&&typeof data.lightYaw==='number')next.lightPosX=Math.max(-100,Math.min(100,Math.round(data.lightYaw/1.8)));
+if(data.lightPosY===undefined&&typeof data.lightAltitude==='number')next.lightPosY=Math.max(-100,Math.min(100,Math.round((data.lightAltitude-30)*2)));
+if(next.lightFilter==='custom')next.lightFilter='none';
+next.refCount=Math.max(1,Math.min(4,Math.round(next.refCount)||1));
+next.lightColorMode=['temperature','filter'].includes(next.lightColorMode)?next.lightColorMode:'temperature';
+const snapLight=n=>n<-50?-100:n>50?100:0;
+next.lightPosX=snapLight(next.lightPosX);
+next.lightPosY=snapLight(next.lightPosY);
+if(next.propsMode==='소품 없음')next.propsMode='없음';
+if(next.propsMode==='미지정')next.propsMode='최소화';
+if(data.preserve!==undefined){for(let i=1;i<=4;i++){if(next['ref'+i]==='제품')next['ref'+i+'ProductLock']=data.preserve!=='미지정';}}
+if(data.productNote){for(let i=1;i<=4;i++){if(next['ref'+i]==='제품'&&!next['ref'+i+'ProductNote'])next['ref'+i+'ProductNote']=data.productNote;}}
+if(data.bgMode===undefined&&data.color&&data.color!=='기존 레퍼런스 유지'&&data.color!=='미지정'){const legacyColors={'화이트':'#ffffff','아이보리':'#f5f0e6','쿨그레이':'#d7dde3','실버그레이':'#c7ccd1','그린':'#bacdb9','퍼플':'#c4b6d8'};next.bgMode='custom';next.bgColor=legacyColors[data.color]||next.bgColor;}
+if(data.floorMode===undefined&&data.surface&&data.surface!=='기존 레퍼런스 유지'&&data.surface!=='미지정'){const legacyMaterials={'매끄러운 무광':'matte','유광':'glossy','석재':'stone','패브릭':'fabric'};next.floorMode='custom';next.floorMaterial=legacyMaterials[data.surface]||'matte';}
+// 이전 파일의 '구도 유지' 필수조건도 작업목적 아래 입력창에 보존한다.
+if(['구도 유지','구도 변경 허용'].includes(next.lockComposition)){
+ const converted=next.lockComposition==='구도 유지'?'기존 이미지의 구도를 유지한다.':'필요한 경우 구도 변경을 허용한다.';
+ if(!next.extra.includes(converted))next.extra=[converted,next.extra.trim()].filter(Boolean).join('\n');
+ next.lockComposition='미지정';
+}
+return next;}
+let values={...defaults},active='task';
+const presets={front:{camYaw:0,camPitch:0,camRoll:0},soft:{camYaw:0,camPitch:12,camRoll:0},left:{camYaw:-35,camPitch:15,camRoll:0},right:{camYaw:35,camPitch:15,camRoll:0},top:{camYaw:0,camPitch:85,camRoll:0},hero:{camYaw:30,camPitch:-12,camRoll:0}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// 모든 슬라이더는 축의 양 끝이 어떤 시각적 의미인지 명확히 표시한다.
+// 수치와 달리 이 의미값은 절대 단위가 아닌 프롬프트용 가이드다.
+const sliderEnds={
+ camYaw:['좌측 사선','우측 사선'],
+ camPitch:['로우앵글','탑뷰'],
+ camRoll:['반시계 기울기','시계 방향 기울기'],
+ camDistance:['가까움','멀어짐'],
+ camFocal:['광각','망원'],
+ camPerspective:['압축된 원근','강한 깊이감'],
+ camFrame:['작게 담기','크게 담기'],
+ camShiftX:['왼쪽 배치','오른쪽 배치'],
+ camShiftY:['위쪽 배치','아래쪽 배치'],
+ camAperture:['얕은 심도','깊은 심도'],
+ lightPosX:['광원 왼쪽','광원 오른쪽'],
+ lightPosY:['광원 아래','광원 위'],
+ lightIntensity:['빛 없음','매우 밝음'],
+ lightSpread:['좁은 조사 범위','넓은 조사 범위'],
+ lightFeather:['경계 선명','경계 부드러움'],
+ lightTemp:['따뜻한 색온도','차가운 색온도'],
+ lightFilterDensity:['보정 없음','강한 색상'],
+ lightShadowDark:['거의 없음','짙음'],
+ lightShadowSoft:['날카로움','흐릿함'],
+ lightShadowLength:['짧음','김'],
+ lightFillIntensity:['보조광 약함','보조광 강함'],
+ lightRimIntensity:['윤곽광 약함','윤곽광 강함'],
+ bgRoughness:['매끄러움','거침'],bgMetallic:['비금속','금속'],
+ floorRoughness:['매끄러움','거침'],floorMetallic:['비금속','금속']
+};
+// 단계 버튼은 미리보기의 수치를 설정하지만 AI용 출력은 시각적 의미로 변환된다.
+const stageDefinitions={
+ camYaw:{labels:['좌측 측면','좌측 사선','약한 좌측','정면','약한 우측','우측 사선','우측 측면'],values:[-75,-40,-18,0,18,40,75]},
+ camPitch:{labels:['로우앵글','아이레벨','약한 하이앵글','하이앵글','탑뷰'],values:[-12,0,13,42,88]},
+ camRoll:{labels:['왼쪽 크게','왼쪽 조금','수평','오른쪽 조금','오른쪽 크게'],values:[-18,-7,0,7,18]},
+ camShiftX:{labels:['왼쪽 크게','왼쪽 조금','중앙','오른쪽 조금','오른쪽 크게'],values:[-40,-20,0,20,40]},
+ camShiftY:{labels:['위쪽 크게','위쪽 조금','중앙','아래쪽 조금','아래쪽 크게'],values:[-30,-15,0,15,30]},
+ lightPosX:{labels:['왼쪽 끝','왼쪽','중앙','오른쪽','오른쪽 끝'],values:[-100,-50,0,50,100]},
+ lightPosY:{labels:['아래쪽 끝','아래쪽','중앙','위쪽','위쪽 끝'],values:[-100,-50,0,50,100]},
+ camDistance:{labels:['매우 가까움','가까움','보통','멀리','매우 멀리'],values:[2,3,4,6,8]},
+ camFocal:{labels:['광각','약한 광각','표준','준망원','망원'],values:[24,35,50,85,135]},
+ camPerspective:{labels:['원근 최소','약한 원근','자연스러움','깊이감 강조','강한 원근'],values:[0,25,65,85,100]},
+ camFrame:{labels:['와이드','미디엄','미디엄 근접','클로즈업','타이트'],values:[35,55,80,105,130]},
+ camAperture:{labels:['매우 얕음','얕음','보통','깊음','매우 깊음'],values:[1.8,2.8,5.6,8,16]},
+ lightIntensity:{labels:['빛 없음','약함','보통','밝음','강함'],values:[0,30,60,105,175]},
+ lightSpread:{labels:['매우 좁음','좁음','보통','넓음','매우 넓음'],values:[10,35,65,90,120]},
+ lightFeather:{labels:['선명','약간 부드러움','보통','부드러움','매우 부드러움'],values:[0,25,50,75,100]},
+ lightTemp:{labels:['매우 따뜻','따뜻함','중성 주광','차가움','매우 차가움'],values:[2700,4000,5600,6500,7500]},
+ lightFilterDensity:{labels:['보정 없음','매우 약하게','은은하게','선명하게','강하게'],values:[0,20,45,70,100]},
+ lightShadowDark:{labels:['거의 없음','옅음','보통','짙음','매우 짙음'],values:[0,25,50,75,100]},
+ lightShadowSoft:{labels:['날카로움','약간 부드러움','보통','부드러움','매우 부드러움'],values:[0,25,50,75,100]},
+ lightShadowLength:{labels:['거의 없음','짧음','보통','김','매우 김'],values:[0,25,50,75,100]},
+ lightFillIntensity:{labels:['최소','약함','보통','강함','매우 강함'],values:[0,25,50,75,100]},
+ lightRimIntensity:{labels:['최소','약함','보통','강함','매우 강함'],values:[0,25,50,75,100]},
+ bgRoughness:{labels:['매우 매끈','매끈','보통','거침','매우 거침'],values:[0,25,50,75,100]},
+ floorRoughness:{labels:['매우 매끈','매끈','보통','거침','매우 거침'],values:[0,25,50,75,100]},
+ bgMetallic:{labels:['비금속','약한 금속감','중간','금속감 강함','금속'],values:[0,25,50,75,100]},
+ floorMetallic:{labels:['비금속','약한 금속감','중간','금속감 강함','금속'],values:[0,25,50,75,100]}
+};
+function stageIndex(key,value=values[key]){const spec=stageDefinitions[key];if(!spec)return -1;let best=0,diff=Infinity;spec.values.forEach((n,i)=>{const d=Math.abs(n-value);if(d<diff){diff=d;best=i}});return best}
+function stageName(key,value=values[key]){const spec=stageDefinitions[key];return spec?spec.labels[stageIndex(key,value)]:''}
+const slider=(key,title,min,max,step,unit,desc,leftLabel='',rightLabel='')=>{
+ const spec=stageDefinitions[key];
+ if(spec){return `<div class="field stage-field"><div class="fieldtop"><span class="fieldlabel" id="label-${key}">${esc(title)}</span></div><div class="stage-picker" role="group" aria-labelledby="label-${key}">${spec.labels.map((label,i)=>`<button type="button" data-stage-key="${key}" data-stage-index="${i}" aria-pressed="${stageIndex(key)===i}" class="stage-button ${stageIndex(key)===i?'active':''}">${esc(label)}</button>`).join('')}</div>${desc&&key==='lightTemp'?`<small>${esc(desc)}</small>`:''}</div>`;}
+ const [left,right]=sliderEnds[key]||[leftLabel||String(min),rightLabel||String(max)];
+ return `<div class="field"><div class="fieldtop"><label for="ctrl-${key}">${esc(title)}</label></div><div class="range-control"><div class="range-track-area"><input id="ctrl-${key}" data-key="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${values[key]}"><div class="range-side-labels"><span>${esc(left)}</span><span>${esc(right)}</span></div></div><input aria-label="${esc(title)} 수치" data-key="${key}" type="number" min="${min}" max="${max}" step="${step}" value="${values[key]}"><span class="unit">${esc(unit)}</span></div>${desc?`<small>${esc(desc)}</small>`:''}</div>`;
+};
+const select=(key,title,opts,desc)=>{
+const help=desc?`<small>${desc}</small>`:'';
+if(opts.length<=5){
+return `<div class="field"><div class="fieldtop"><span class="fieldlabel" id="label-${key}">${esc(title)}</span></div><div class="choice-options" role="radiogroup" aria-labelledby="label-${key}">${opts.map(([v,l])=>`<button type="button" role="radio" aria-checked="${values[key]===v}" class="choice-tile ${values[key]===v?'selected':''}" data-choice-key="${key}" data-choice-value="${esc(v)}">${esc(l)}</button>`).join('')}</div>${help}</div>`
+}
+return `<div class="field"><div class="fieldtop"><label for="ctrl-${key}">${esc(title)}</label></div><select id="ctrl-${key}" data-key="${key}">${opts.map(([v,l])=>`<option value="${esc(v)}" ${values[key]===v?'selected':''}>${esc(l)}</option>`).join('')}</select>${help}</div>`;
+};
+const checkbox=(key,title,desc)=>`<div class="toggleline"><label for="ctrl-${key}">${title}${desc?`<small style="display:block;font-size:10px;color:#92a6c1;font-weight:400;margin-top:5px">${desc}</small>`:''}</label><input id="ctrl-${key}" data-key="${key}" type="checkbox" ${values[key]?'checked':''}></div>`;
+const filterPresets=[
+ ['none','보정 없음','#ffffff'],
+ ['warming85','Warming Filter (85)','#ec9d39'],['warmingLBA','Warming Filter (LBA)','#f5b65a'],['warming81','Warming Filter (81)','#eac36d'],
+ ['cooling80','Cooling Filter (80)','#67a9da'],['coolingLBB','Cooling Filter (LBB)','#91bdd9'],['cooling82','Cooling Filter (82)','#6ab9e0'],
+ ['red','Red','#e45454'],['orange','Orange','#ff922e'],['yellow','Yellow','#f2d957'],['green','Green','#66b872'],
+ ['cyan','Cyan','#65cdd2'],['blue','Blue','#5a94d5'],['violet','Violet','#9870c1'],['magenta','Magenta','#d66cad'],
+ ['sepia','Sepia','#a17b50'],['deepRed','Deep Red','#aa3640'],['deepBlue','Deep Blue','#284eab'],
+ ['deepEmerald','Deep Emerald','#267a64'],['deepYellow','Deep Yellow','#c6a31b'],['underwater','Underwater','#388fa6']
+];
+const filterInfo=()=>filterPresets.find(p=>p[0]===values.lightFilter)||filterPresets[0];
+const filterHex=()=>filterInfo()[2];
+const refRoles=[['촬영환경','촬영환경'],['제품','제품'],['모델','모델'],['소품·재질','소품·재질'],['직접 입력','직접 입력']];
+const refScopes=[['camera','카메라'],['composition','구도'],['environment','배경'],['lighting','조명']];
+function allCheckboxUI(kind,options,selected,refIndex=''){
+ if(options.length<4)return '';
+ const all=options.every(([key])=>selected(key));
+ return `<label class="check-all"><input type="checkbox" data-select-all="${kind}" ${refIndex?`data-select-all-ref="${refIndex}"`:''} ${all?'checked':''}>모두 선택</label>`;
+}
+function referenceHTML(i){
+ const key='ref'+i,custom=values[key]==='직접 입력',product=values[key]==='제품',scene=['촬영환경','구도·배경·조명'].includes(values[key]);
+ return `<div class="reference-card standalone-reference"><div class="reference-head"><strong>이미지 ${i}</strong><span class="reference-limit-note">이미지 ${activeReferenceSlots().length} / 4</span></div><div class="reference-body"><div class="reference-roles" role="radiogroup" aria-label="이미지 ${i} 역할">${refRoles.map(([v,label])=>`<button type="button" role="radio" aria-checked="${values[key]===v}" class="choice-tile ${values[key]===v?'selected':''}" data-choice-key="${key}" data-choice-value="${esc(v)}">${esc(label)}</button>`).join('')}</div>${scene?`<div class="reference-product-options"><div class="fieldtop"><span class="fieldlabel">참고할 촬영 요소</span>${allCheckboxUI('reference',refScopes,id=>values[key+'Scope'+id],i)}</div><div class="scope-list">${refScopes.map(([id,title])=>`<label class="scope-label"><input type="checkbox" data-key="${key}Scope${id}" ${values[key+'Scope'+id]?'checked':''}>${title}</label>`).join('')}</div></div>`:''}${product?`<div class="reference-product-options"><label class="scope-label"><input type="checkbox" data-key="${key}ProductLock" ${values[key+'ProductLock']?'checked':''}>원본 디자인·비율·라벨 유지</label><div class="field reference-note-field"><label for="ctrl-${key}ProductNote">제품 관련 메모</label><input type="text" id="ctrl-${key}ProductNote" data-key="${key}ProductNote" placeholder="예: 실제 제품 비율을 유지" value="${esc(values[key+'ProductNote'])}"></div></div>`:''}${custom?`<div class="reference-custom"><label for="ctrl-${key}Custom">이미지 ${i}에서 참고할 요소</label><input type="text" id="ctrl-${key}Custom" data-key="${key}Custom" placeholder="예: 제품 뒤쪽 식물 배치만 참고" value="${esc(values[key+'Custom'])}"></div>`:''}</div></div>`;
+}
+const lightPosPresets=[[-100,100,'좌측 상단','↖'],[0,100,'상단','↑'],[100,100,'우측 상단','↗'],[-100,0,'좌측','←'],[0,0,'정면','•'],[100,0,'우측','→'],[-100,-100,'좌측 하단','↙'],[0,-100,'하단','↓'],[100,-100,'우측 하단','↘']];
+function lightPositionHTML(){return `<div class="light-position-panel"><div class="fieldtop"><span class="fieldlabel">조명 위치</span></div><div class="light-position-layout"><div class="light-pad" role="group" aria-label="조명 위치">${lightPosPresets.map(([x,y,label,arrow])=>`<button type="button" class="light-position-btn ${values.lightPosX===x&&values.lightPosY===y?'active':''}" data-light-x="${x}" data-light-y="${y}" aria-pressed="${values.lightPosX===x&&values.lightPosY===y}"><span class="direction-mark">${arrow}</span>${label}</button>`).join('')}</div></div></div>`}
+const filterGroups=[
+ {title:'기본',sub:'색상 보정을 적용하지 않음',ids:['none']},
+ {title:'Warming · 웜톤',sub:'노란빛과 앰버 계열',ids:['warming85','warmingLBA','warming81']},
+ {title:'Cooling · 쿨톤',sub:'푸른빛과 차가운 색조',ids:['cooling80','coolingLBB','cooling82']},
+ {title:'Color · 색상',sub:'기본 색상 계열',ids:['red','orange','yellow','green','cyan','blue','violet','magenta']},
+ {title:'Special · 특수 색상',sub:'세피아와 진한 컬러 효과',ids:['sepia','deepRed','deepBlue','deepEmerald','deepYellow','underwater']}
+];
+function photoFilterHTML(){
+ const radio=([value,title,hex])=>`<button type="button" role="radio" aria-checked="${values.lightFilter===value}" class="filter-chip ${values.lightFilter===value?'selected':''}" data-choice-key="lightFilter" data-choice-value="${esc(value)}"><span class="filter-chip-swatch" style="background:${hex}"></span><span class="filter-chip-name">${esc(title)}</span></button>`;
+ const groupsHTML=filterGroups.map(({title,sub,ids})=>`<section class="filter-group"><div class="filter-group-heading"><strong>${title}</strong><span>${sub}</span></div><div class="photo-filter-grid">${ids.map(id=>radio(filterPresets.find(p=>p[0]===id))).join('')}</div></section>`).join('');
+ return `<div class="field"><div class="fieldtop"><span class="fieldlabel" id="label-lightFilter">포토필터 색상 프리셋</span></div><div role="radiogroup" aria-labelledby="label-lightFilter">${groupsHTML}</div><small>선택한 색조는 미리보기에 반영돼.</small></div>${values.lightFilter!=='none'?slider('lightFilterDensity','필터 농도',0,100,5,'%',''):''}`;
+}
+function propsHTML(){return `<div class="sect">${select('propsMode','소품 구성',[['최소화','최소화'],...(hasReference('props')?[['레퍼런스 유지','레퍼런스 유지']]:[]),['없음','없음'],['사용자 지정','사용자 지정']])}${values.propsMode==='사용자 지정'?`<div class="field"><div class="fieldtop"><label for="ctrl-propsNote">소품 설명</label></div><textarea id="ctrl-propsNote" data-key="propsNote" placeholder="예: 작은 유리컵 하나를 제품 뒤쪽에 배치">${esc(values.propsNote)}</textarea></div>`:''}</div>`}
+function cameraHTML(){const p=Object.entries(presets).map(([key,p])=>{const names={front:'정면',soft:'약한 하이앵글',left:'좌측 사선',right:'우측 사선',top:'탑뷰',hero:'로우앵글'};const selected=Math.abs(values.camYaw-p.camYaw)<1&&Math.abs(values.camPitch-p.camPitch)<1&&Math.abs(values.camRoll-p.camRoll)<1;return `<button type="button" data-preset="${key}" class="${selected?'active':''}">${names[key]}</button>`}).join('');return `<div class="seg">${p}</div><details class="sect" open><summary>카메라 위치 및 회전</summary><div class="inside">${slider('camYaw','카메라 방향',-85,85,1,'°','')}${slider('camPitch','카메라 높이',-20,89,1,'°','')}${slider('camRoll','카메라 기울기',-25,25,1,'°','')}</div></details><details class="sect" open><summary>렌즈 및 원근감</summary><div class="inside">${slider('camFocal','화각 느낌',24,135,1,'mm','')}${slider('camPerspective','원근감',0,100,5,'%','')}</div></details><details class="sect" open><summary>프레이밍 및 초점</summary><div class="inside">${slider('camFrame','프레이밍',35,130,5,'%','')}${select('camFocus','초점 방식',[['제품 전체 선명','제품 전체 선명'],['얕은 심도 · 배경 흐림','얕은 심도 · 배경 흐림'],['중간 심도','중간 심도']])}</div></details><div class="presethint">카메라 위치를 바꾸면 제품의 보이는 면과 프레이밍이 함께 달라질 수 있어. 원본 레퍼런스 구도를 유지할 때는 해당 값의 변경을 최소화하는 게 좋아.</div>`}
+const materials=[
+ {id:'matte',name:'무광',category:'basic'},
+ {id:'glossy',name:'유광 세라믹',category:'basic'},
+ {id:'metal',name:'브러시드 메탈',category:'basic'},
+ {id:'concrete',name:'콘크리트',category:'texture'},
+ {id:'stone',name:'천연석',category:'texture'},
+ {id:'marble',name:'대리석',category:'texture'},
+ {id:'wood',name:'우드',category:'texture'},
+ {id:'fabric',name:'패브릭',category:'texture'},
+ {id:'glass',name:'유리',category:'texture'},
+ {id:'leather',name:'가죽',category:'texture'}
+];
+const materialName=id=>(materials.find(m=>m.id===id)||materials[0]).name;
+const isHex=v=>/^#[0-9a-f]{6}$/i.test(v);
+function surfaceHTML(kind){
+ const name=kind==='bg'?'배경':'바닥',material=values[kind+'Material'];
+ const matSection=category=>`<div class="material-category">${category==='basic'?'기본 재질':'질감 재질'}</div><div class="material-library" role="radiogroup" aria-label="${name} 재질 선택">${materials.filter(m=>m.category===category).map(m=>`<button type="button" role="radio" aria-checked="${material===m.id}" class="material-card ${material===m.id?'selected':''}" data-material-key="${kind}Material" data-material-id="${m.id}"><span class="material-orb mat-${m.id}" aria-hidden="true"></span><span class="material-card-label">${m.name}</span></button>`).join('')}</div>`;
+ return `<section class="surface-card"><div class="surface-head"><strong>${name}</strong></div><div class="surface-group"><div class="surface-group-title">색상</div><div class="surface-color-row"><div class="surface-color-box"><input type="color" data-surface-color="${kind}" aria-label="${name} 색상 선택" value="${esc(values[kind+'Color'])}"></div><div class="surface-color-code"><label for="ctrl-${kind}ColorHex">HEX 코드</label><input id="ctrl-${kind}ColorHex" type="text" data-surface-hex="${kind}" autocomplete="off" spellcheck="false" maxlength="7" placeholder="#FFFFFF" value="${esc(values[kind+'Color'].toUpperCase())}"></div></div></div><div class="surface-group"><div class="surface-group-title">재질 선택</div>${matSection('basic')}${matSection('texture')}</div></section>`;
+}
+function environmentHTML(){return `<div class="surface-stack">${surfaceHTML('bg')}${surfaceHTML('floor')}</div>`}
+function surfaceSummary(kind){
+ const label=kind==='bg'?'배경':'바닥';
+ if(values[kind+'Mode']==='reference')return `${label}: 레퍼런스의 색상과 재질을 유지한다.`;
+ return `${label}: ${values[kind+'Color'].toUpperCase()} 색상의 ${materialName(values[kind+'Material'])} 재질을 적용한다.`;
+}
+function lightingHTML(){return `<details class="sect" open><summary>빛 방향</summary><div class="inside">${select('lightType','광원 종류',[['area','Area · 대형 면광원'],['spot','Spot · 스포트라이트'],['point','Point · 점광원'],['parallel','Parallel · 평행광']])}${select('lightDepth','광원 앞뒤 위치',[['front','카메라 쪽 · 앞'],['back','피사체 뒤쪽']])}${lightPositionHTML()}${slider('lightIntensity','조명 밝기',0,200,5,'%','')}${select('lightFalloff','거리별 감쇠',[['none','None · 감쇠 최소화'],['smooth','Smooth · 서서히 감소'],['strong','Strong · 빠르게 감소']])}${values.lightType==='spot'?slider('lightSpread','Cone Angle · 확산각',10,120,5,'°','스포트라이트가 비추는 범위'):''}${slider('lightFeather','광원 경계 부드러움',0,100,5,'%','')}</div></details><details class="sect" open><summary>조명 색상</summary><div class="inside"><div class="color-mode-choice">${select('lightColorMode','색상 설정 방식',[['temperature','색온도 선택'],['filter','색조 선택']])}</div>${values.lightColorMode==='temperature'?slider('lightTemp','색온도',2700,7500,100,'K',''):photoFilterHTML()}</div></details><details class="sect" open><summary>그림자</summary><div class="inside">${checkbox('lightShadows','그림자 생성','끄면 뚜렷한 투영 그림자를 표현하지 않도록 지시')}${values.lightShadows?slider('lightShadowDark','그림자 농도',0,100,5,'%','', '거의 없음','짙음')+slider('lightShadowSoft','그림자 확산',0,100,5,'%','', '날카로움','흐릿함')+slider('lightShadowLength','그림자 길이',0,100,5,'%','', '짧음','김'):''}</div></details><details class="sect" open><summary>보조광 및 윤곽광</summary><div class="inside">${checkbox('lightFill','Light 02 · 보조광 사용')}${values.lightFill?slider('lightFillIntensity','보조광 상대 강도',0,100,5,'%','주광 반대쪽의 어두운 면을 밝히는 용도'):''}${checkbox('lightRim','Light 03 · 림라이트 사용')}${values.lightRim?slider('lightRimIntensity','림라이트 상대 강도',0,100,5,'%','피사체 뒤쪽 가장자리에 은은한 윤곽광'):''}</div></details>`}
+const unset=v=>v===''||v==null||v==='미지정';
+// AI가 직접 재현할 수 있는 시각적 결과를 중심으로 프롬프트를 작성한다.
+// 슬라이더 원본 수치와 물리적으로 정확한 측정값은 구분한다.
+function legacyBuild(){
+ const v=values,sections=[];
+ const add=(title,rows)=>{const arr=rows.filter(Boolean);if(arr.length)sections.push(`[${title}]\n`+arr.join('\n'))};
+ const word=(key)=>stageName(key);
+ for(const group of groups){
+  if(group.id==='task'){
+    add('작업 목적',[`작업 방식: ${v.mode}`,v.intent.trim()?`목표: ${v.intent.trim()}`:null]);continue;
+  }
+  if(group.id==='reference'){
+   add('레퍼런스',Array.from({length:v.refCount},(_,index)=>index+1).map(i=>{
+    const k='ref'+i,role=v[k];
+    if(role==='직접 입력')return `이미지 ${i}: ${v[k+'Custom'].trim()||'참고할 요소를 입력해야 함'}`;
+    if(role==='제품')return `이미지 ${i}: 실제 제품 참고. ${v[k+'ProductLock']?'제품의 원본 디자인, 로고, 라벨, 형태와 비율을 그대로 유지한다. ':''}${v[k+'ProductNote'].trim()}`.trim();
+    if(role==='모델')return `이미지 ${i}: 모델의 인상, 헤어, 의상 등을 참고하고 동일한 인물로 표현한다.`;
+    if(role==='촬영환경'||role==='구도·배경·조명')return `이미지 ${i}: 촬영환경 중 ${refScopes.filter(([id])=>v[k+'Scope'+id]).map(([,n])=>n).join('·')||'지정된 요소 없음'} 참고.`;
+    return `이미지 ${i}: 소품과 재질을 참고한다.`;
+   }));continue;
+  }
+  if(group.id==='camera'){
+   const yaw=Math.abs(v.camYaw);
+   const horizontal=yaw<8?'제품 정면을 똑바로 바라본다':yaw<25?`제품 정면이 중심이면서 ${v.camYaw<0?'왼쪽':'오른쪽'} 측면이 살짝 보이는 구도`:
+    yaw<62?`제품 정면과 ${v.camYaw<0?'왼쪽':'오른쪽'} 측면이 함께 보이는 사선 구도`:`제품을 ${v.camYaw<0?'왼쪽':'오른쪽'} 측면에서 바라보는 구도`;
+   const pitch=v.camPitch< -5?'아래에서 위를 살짝 올려다보는 로우앵글':v.camPitch<7?'제품과 비슷한 높이의 아이레벨':
+    v.camPitch<27?'카메라가 제품보다 약간 높아 윗면이 조금만 보이는 약한 하이앵글':v.camPitch<72?'제품의 윗면과 앞면이 함께 보이는 하이앵글':'거의 수직으로 내려다보는 탑뷰';
+   const shiftX=Math.abs(v.camShiftX)>8?`화면 ${v.camShiftX>0?'오른쪽':'왼쪽'}에 제품을 치우쳐 배치`:null;
+   const shiftY=Math.abs(v.camShiftY)>8?`화면 ${v.camShiftY>0?'아래쪽':'위쪽'}에 제품을 배치`:null;
+   const frame=['넓은 공간과 제품이 함께 보이는 와이드 프레이밍','제품과 주변 환경을 함께 담는 미디엄 프레이밍','제품이 충분히 강조되는 미디엄 클로즈업','제품을 크게 강조하는 클로즈업','제품 중심으로 바짝 다가간 타이트 클로즈업'][stageIndex('camFrame')];
+   const perspective=['앞뒤 크기 차이가 거의 없는 압축된 원근감','앞뒤 크기 차이가 적은 안정된 원근감','자연스러운 원근감으로 제품 비율을 사실적으로 표현','입체감과 공간 깊이를 살린 원근감','전후 거리 차이가 분명한 역동적인 원근감'][stageIndex('camPerspective')];
+   const lens=v.camFocal<40?'광각의 과장된 느낌이 있을 수 있는 넓은 시야':v.camFocal>100?'망원 촬영처럼 원근이 압축된 느낌':v.camFocal>65?'준망원 촬영처럼 안정적인 제품 비율':null;
+   const focus=v.camFocus==='제품 전체 선명'?'제품 전체와 라벨에 선명하게 초점을 맞춘다':v.camFocus.includes('얕은')?'제품에 초점을 맞추고 배경은 부드럽게 흐린다':'제품을 선명하게 하고 배경을 적당히 흐린다';
+   add('카메라',[`방향: ${horizontal}.`,`높이: ${pitch}.`,v.camRoll>4?'화면을 살짝 시계 방향으로 기울인다.':v.camRoll< -4?'화면을 살짝 반시계 방향으로 기울인다.':null,
+     `원근감: ${perspective}.`,lens?`화각 분위기: ${lens}.`:null,`프레이밍: ${frame}.`,shiftX,shiftY,`초점: ${focus}`]);continue;
+  }
+  if(group.id==='composition'){
+   add('구도',[v.placement!=='미지정'?`제품 위치: ${v.placement}.`:null,
+    v.scale==='크게'?'제품을 사진의 주요 시각적 요소로 강조한다.':v.scale==='작게'?'제품 주변의 공간이 충분히 드러나도록 한다.':v.scale==='보통'?'제품과 주변 공간의 균형을 유지한다.':null]);continue;
+  }
+  if(group.id==='environment'){
+   add('배경 및 바닥',[surfaceSummary('bg'),surfaceSummary('floor')]);continue;
+  }
+  if(group.id==='lighting'){
+   const lightType={area:'크고 부드러운 면광원',spot:'방향성이 분명한 스포트라이트',point:'중앙에서 퍼지는 점광원',parallel:'일정한 방향으로 비추는 평행광'}[v.lightType];
+   const side=v.lightPosX<-25?'왼쪽':v.lightPosX>25?'오른쪽':'정면 중앙';
+   const vertical=v.lightPosY>25?'위':v.lightPosY<-25?'아래':'정면 높이';
+   const pos=side==='정면 중앙'&&vertical==='정면 높이'?'정면':`${side==='정면 중앙'?'':side+' '}${vertical}`.trim();
+   const intensity=['주광을 거의 비추지 않는다','은은한 조명','적절한 밝기의 조명','밝고 깨끗한 주광','강하고 또렷한 조명'][stageIndex('lightIntensity')];
+   const feather=['경계가 선명한 빛','경계가 약간 부드러운 빛','자연스럽게 퍼지는 빛','경계가 부드럽게 확산되는 빛','넓고 매우 부드럽게 퍼지는 빛'][stageIndex('lightFeather')];
+   const kelvin=v.lightTemp<3700?'따뜻한 노란빛':v.lightTemp<5100?'약간 따뜻한 중성광':v.lightTemp<=6100?'중성적인 자연 주광색':v.lightTemp<7000?'살짝 차가운 주광색':'차갑고 푸른 기운이 있는 조명';
+   const falloff={none:'빛이 공간에 비교적 고르게 퍼지도록 한다.',smooth:'빛이 대상에서 멀어질수록 자연스럽게 약해지도록 한다.',strong:'빛이 주요 피사체에 집중되고 멀어질수록 비교적 빠르게 약해지도록 한다.'}[v.lightFalloff];
+   const colorMap={warming85:'따뜻한 황금빛',warmingLBA:'은은한 앰버색',warming81:'노란 기운의 따뜻한 색조',cooling80:'시원한 파란빛',coolingLBB:'연한 푸른빛',cooling82:'맑은 청색 기운',red:'붉은빛',orange:'주황빛',yellow:'노란빛',green:'초록빛',cyan:'청록빛',blue:'푸른빛',violet:'보랏빛',magenta:'자홍빛',sepia:'세피아빛',deepRed:'진한 붉은빛',deepBlue:'짙은 파란빛',deepEmerald:'깊은 에메랄드빛',deepYellow:'짙은 노란빛',underwater:'수중 느낌의 청록빛'};
+   const filter=v.lightFilter!=='none'&&v.lightFilterDensity>5?`${colorMap[v.lightFilter]||'선택한 색조'}을 ${['거의 보이지 않게','아주 약하게','은은하게','눈에 띄게','강하게'][stageIndex('lightFilterDensity')]} 더한다.`:null;
+   const fill=v.lightFill?`보조광을 ${['매우 약하게','약하게','적당하게','밝게','강하게'][stageIndex('lightFillIntensity')]} 사용하여 어두운 부분을 보완한다.`:null;
+   const rim=v.lightRim?`피사체 윤곽에 ${['아주 미세한','은은한','적당한','선명한','강한'][stageIndex('lightRimIntensity')]} 림라이트를 더한다.`:null;
+   const spread=v.lightType==='spot'?`스포트라이트의 조사 범위는 ${['매우 좁게','좁게','보통으로','넓게','매우 넓게'][stageIndex('lightSpread')]} 설정한다.`:null;
+   add('조명',[`주광: ${lightType}. ${intensity}.`,`조명 위치: 카메라 기준 제품의 ${pos}${v.lightDepth==='back'?' 뒤쪽에서 비추는 역광':' 방향에서 비춘다'}.`,
+    `빛의 확산: ${feather}.`,spread,falloff,...(v.lightColorMode==='temperature'?[`색온도: ${kelvin}.`]:[filter||'색조: 별도의 색상 필터를 적용하지 않는다.']),fill,rim]);
+   if(v.lightShadows){
+    const dark=['거의 보이지 않도록','옅게','보통 농도로','짙게','매우 짙게'][stageIndex('lightShadowDark')];
+    const soft=['아주 선명하게','약간 부드럽게','자연스럽게','부드럽게','아주 부드럽게'][stageIndex('lightShadowSoft')];
+    const length=['매우 짧게','짧게','자연스러운 길이로','길게','매우 길게'][stageIndex('lightShadowLength')];
+    add('그림자',[`제품이 바닥에 닿는 부분에는 자연스러운 접지 그림자를 형성한다. 투영 그림자는 ${length} 드리우되 ${dark} 표현하고 경계는 ${soft} 처리한다.`]);
+   }else add('그림자',['뚜렷한 투영 그림자를 만들지 않고 제품이 바닥에 자연스럽게 접하도록 한다.']);
+   continue;
+  }
+  if(group.id==='props'){
+   const modes={'최소화':'소품은 최소한으로 배치하여 제품에 집중한다.','레퍼런스 유지':'레퍼런스의 소품 구성과 배치를 유지한다.','없음':'불필요한 소품은 사용하지 않는다.','사용자 지정':v.propsNote.trim()||'소품 설명을 입력해야 함'};
+   add('소품',[modes[v.propsMode]]);continue;
+  }
+  const rows=[];for(const [key,label] of group.fields){if(!unset(v[key]))rows.push(`${label}: ${group.id==='style'&&key==='mood'?v[key]+' 분위기':v[key]}`)}add(group.name,rows);
+ }
+ return sections.join('\n\n');
+}
+// Workspace / component architecture (v2)
+const componentInfo={
+ reference:{name:'이미지',desc:'이미지별로 참고할 역할을 개별 설정합니다. 최대 4장.',icon:'▧'},
+ ...Object.fromEntries(Array.from({length:4},(_,i)=>[`reference${i+1}`,{name:`이미지 ${i+1}`,desc:`이미지 ${i+1}에서 참고할 역할을 지정합니다.`,icon:'▧'}])),
+ camera:{name:'카메라',desc:'방향, 높이, 원근감, 프레이밍을 설정합니다.',icon:'◉'},
+ composition:{name:'구도',desc:'피사체 위치와 화면에서 차지하는 비중을 설정합니다.',icon:'▦'},
+ environment:{name:'배경',desc:'배경과 바닥의 색상 및 재질을 정합니다.',icon:'▤'},
+ lighting:{name:'조명',desc:'빛의 방향과 강도, 색조, 그림자를 설정합니다.',icon:'☼'},
+ props:{name:'소품',desc:'제품을 보조하는 소품의 구성을 정합니다.',icon:'♧'},
+ style:{name:'스타일',desc:'촬영 스타일과 전체 분위기를 설정합니다.',icon:'✧'}
+};
+const scopeConfig={
+ camera:[['angle','방향·높이'],['perspective','원근감·화각'],['framing','프레이밍·초점']],
+ composition:[['position','제품 위치'],['size','화면 점유율']],
+ environment:[['bg','배경'],['floor','바닥']],
+ lighting:[['key','빛 방향·강도'],['color','색온도·색조'],['shadow','그림자'],['fill','보조광·윤곽광']],
+ props:[['props','소품 구성']],style:[['render','표현 방식'],['mood','분위기']],
+ constraints:[['lock','구도 유지'],['extra','추가 조건']]
+};
+let added=[],componentModes={},partialScopes={},customConditions={},omittedScopes={},removedScopes={};
+let editSession=null;
+const snapshotWorkspace=()=>structuredClone({values,added,componentModes,partialScopes,customConditions,omittedScopes,removedScopes,promptLanguage});
+function startEditorTransaction(){if(!editSession)editSession=snapshotWorkspace()}
+function closeEditorView(){active='task';render();$('workspace-main').scrollTop=0;resetSmallScreenScroll()}
+function saveEditor(){if(!editSession)return closeEditorView();editSession=null;normalizeModes();persist();closeEditorView()}
+function cancelEditor(){if(editSession){({values,added,componentModes,partialScopes,customConditions,omittedScopes,removedScopes,promptLanguage}=editSession);editSession=null;normalizeModes();persist()}closeEditorView()}
+
+const refNumber=id=>{const m=/^reference([1-4])$/.exec(id||'');return m?Number(m[1]):null};
+const isRef=id=>refNumber(id)!==null;
+const activeReferenceSlots=()=>added.map(refNumber).filter(Boolean).sort((a,b)=>a-b);
+const referenceSuffixes=['','Custom','ProductLock','ProductNote',...refScopes.map(([id])=>'Scope'+id)];
+function resetReferenceSlot(i){for(const suffix of referenceSuffixes)values[`ref${i}${suffix}`]=defaults[`ref${i}${suffix}`];for(const [id] of refScopes)values[`ref${i}Scope${id}`]=false;}
+
+const WORKSPACE_KEY='prompt-studio-workspace-v2';
+const SAVE_PREFERENCE_KEY='prompt-studio-save-enabled';
+let saveEnabled=false;
+try{saveEnabled=localStorage.getItem(SAVE_PREFERENCE_KEY)==='true'}catch(e){}
+let promptLanguage='ko';
+let modalOpen=false;
+for(let i=1;i<=4;i++)for(const [id] of refScopes)defaults[`ref${i}Scope${id}`]=false;
+Object.assign(values,Object.fromEntries(Object.keys(defaults).filter(k=>k.includes('Scope')).map(k=>[k,defaults[k]])));
+const hasReference=id=>{
+ if(!activeReferenceSlots().length)return false;
+ for(const i of activeReferenceSlots()){
+  const role=values[`ref${i}`];
+  if(['촬영환경','구도·배경·조명'].includes(role)&&values[`ref${i}Scope${id}`])return true;
+  if(role==='소품·재질'&&(id==='props'||id==='environment'))return true;
+  if(role==='직접 입력'&&id==='constraints')return true;
+ }
+ return false;
+};
+const refIndices=id=>{
+ const indices=[];
+ if(!activeReferenceSlots().length)return indices;
+ for(const i of activeReferenceSlots()){
+  const role=values[`ref${i}`];
+  if(['촬영환경','구도·배경·조명'].includes(role)&&values[`ref${i}Scope${id}`]||role==='소품·재질'&&(id==='props'||id==='environment'))indices.push(i);
+ }
+ return indices;
+};
+const refLabel=id=>{const ids=refIndices(id);return ids.length?ids.map(i=>`이미지 ${i}`).join('·'):null};
+function normalizeModes(){
+ for(const id of added){
+  if(isRef(id))continue;
+  if(id==='style'){componentModes[id]='new';continue}
+  const sourced=hasReference(id);
+  if(sourced&&componentModes[id]==='new')componentModes[id]='reference';
+  if(!sourced&&componentModes[id]!=='new')componentModes[id]='new';
+  if(!componentModes[id])componentModes[id]=sourced?'reference':'new';
+ }
+ if(!hasReference('props')&&values.propsMode==='레퍼런스 유지')values.propsMode='최소화';
+}
+function persist(){if(editSession)return;try{if(saveEnabled)localStorage.setItem(WORKSPACE_KEY,JSON.stringify({values,added,componentModes,partialScopes,customConditions,omittedScopes,removedScopes,promptLanguage}));else localStorage.removeItem(WORKSPACE_KEY)}catch(e){}}
+function loadWorkspace(data){
+ if(data&&typeof data==='object'&&data.values){
+  promptLanguage=data.promptLanguage==='en'?'en':'ko';
+  values=migrate(data.values);
+  for(let i=1;i<=4;i++)for(const [id] of refScopes){const k=`ref${i}Scope${id}`; values[k]=typeof data.values[k]==='boolean'?data.values[k]:false}
+  for(let i=1;i<=4;i++)if(values['ref'+i]==='구도·배경·조명')values['ref'+i]='촬영환경';
+  added=Array.isArray(data.added)?[...new Set(data.added.filter(id=>componentInfo[id]))]:[];
+  if(added.includes('reference')){const legacyCount=Math.max(1,Math.min(4,values.refCount||1));added=added.flatMap(id=>id==='reference'?Array.from({length:legacyCount},(_,i)=>`reference${i+1}`):[id]);}
+  values.refCount=activeReferenceSlots().length;
+  componentModes={...data.componentModes};partialScopes=data.partialScopes&&typeof data.partialScopes==='object'?data.partialScopes:{};
+  customConditions=data.customConditions&&typeof data.customConditions==='object'?data.customConditions:{};
+  omittedScopes=data.omittedScopes&&typeof data.omittedScopes==='object'?data.omittedScopes:{};
+  removedScopes=data.removedScopes&&typeof data.removedScopes==='object'?data.removedScopes:{...omittedScopes};
+ }else if(data&&typeof data==='object'){
+  values=migrate(data);
+  for(let i=1;i<=4;i++)for(const [id] of refScopes)values[`ref${i}Scope${id}`]=false;
+  for(let i=1;i<=4;i++)if(values['ref'+i]==='구도·배경·조명')values['ref'+i]='촬영환경';
+  added=[...Array.from({length:values.refCount},(_,i)=>`reference${i+1}`),'camera','composition','environment','lighting','props','style'];
+  componentModes=Object.fromEntries(added.filter(id=>!isRef(id)&&id!=='constraints').map(id=>[id,'new']));
+  partialScopes={};customConditions={};omittedScopes={};removedScopes={};
+ }
+ normalizeModes();
+}
+try{const loaded=saveEnabled?localStorage.getItem(WORKSPACE_KEY):null;if(loaded)loadWorkspace(JSON.parse(loaded));if(!saveEnabled)localStorage.removeItem(WORKSPACE_KEY)}catch(e){}
+const validScopes=id=>scopeConfig[id]||[];
+function partialEnabled(id,scope){return (partialScopes[id]||[]).includes(scope)}
+function scopeIncluded(id,scope){
+ const mode=componentModes[id]||'new';
+ if(mode==='reference')return false;
+ if(mode==='partial')return partialEnabled(id,scope);
+ return !(omittedScopes[id]||[]).includes(scope);
+}
+function markRemoved(id,key){removedScopes[id]=[...new Set([...(removedScopes[id]||[]),key])]}
+function clearRemoved(id,key){removedScopes[id]=(removedScopes[id]||[]).filter(k=>k!==key)}
+function omitScope(id,scope){
+ if(!validScopes(id).some(([key])=>key===scope))return;
+ markRemoved(id,scope);
+ if(componentModes[id]==='partial'){
+  partialScopes[id]=(partialScopes[id]||[]).filter(key=>key!==scope);
+  omittedScopes[id]=[...new Set([...(omittedScopes[id]||[]),scope])];
+ }else omittedScopes[id]=[...new Set([...(omittedScopes[id]||[]),scope])];
+}
+function reinstateChangedScope(key){
+ if(!added.includes(active)||(componentModes[active]||'new')!=='new')return;
+ const byGroup={camera:{camYaw:'angle',camPitch:'angle',camRoll:'angle',camFocal:'perspective',camPerspective:'perspective',camFrame:'framing',camFocus:'framing'},composition:{placement:'position',scale:'size'},environment:{bgMaterial:'bg',floorMaterial:'floor'},lighting:{lightType:'key',lightDepth:'key',lightIntensity:'key',lightFalloff:'key',lightPosX:'key',lightPosY:'key',lightFilter:'color',lightTemp:'color',lightColorMode:'color'},props:{propsMode:'props'},style:{render:'render',mood:'mood'},constraints:{lockComposition:'lock'}};
+ const scope=byGroup[active]?.[key];if(scope){omittedScopes[active]=(omittedScopes[active]||[]).filter(k=>k!==scope);clearRemoved(active,scope)}
+}
+function restoreScopes(id){
+ const removed=removedScopes[id]||[];
+ if(isRef(id)){
+  const i=refNumber(id);
+  if(values['ref'+i]==='촬영환경')for(const key of removed)if(refScopes.some(([k])=>k===key))values[`ref${i}Scope${key}`]=true;
+ }else{
+  if(componentModes[id]==='partial')partialScopes[id]=[...new Set([...(partialScopes[id]||[]),...removed])];
+  omittedScopes[id]=(omittedScopes[id]||[]).filter(key=>!removed.includes(key));
+ }
+ removedScopes[id]=[];
+}
+function sliceSection(text,section){const pattern=new RegExp('(?:^|\\n\\n)\\['+section.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\]\\n([^]*?)(?=\\n\\n\\[|$)');const match=text.match(pattern);return match?match[1].trim().split('\n').filter(Boolean):[]}
+function splitFields(id){const legacy=legacyBuild();
+ if(id==='camera'){
+  const rows=sliceSection(legacy,'카메라');return {angle:rows.filter(r=>/^(방향|높이):|화면을 살짝/.test(r)),perspective:rows.filter(r=>/^(원근감|화각 분위기):/.test(r)),framing:rows.filter(r=>/^(프레이밍|초점):/.test(r))};
+ }
+ if(id==='composition'){
+  const rows=sliceSection(legacy,'구도');return {position:rows.filter(r=>r.startsWith('제품 위치:')),size:rows.filter(r=>!r.startsWith('제품 위치:'))};
+ }
+ if(id==='environment'){
+  const rows=sliceSection(legacy,'배경 및 바닥');return {bg:rows.filter(r=>r.startsWith('배경:')),floor:rows.filter(r=>r.startsWith('바닥:'))};
+ }
+ if(id==='lighting'){
+  const rows=sliceSection(legacy,'조명');return {key:rows.filter(r=>/^(주광|조명 위치|빛의 확산|스포트라이트)/.test(r)||r.startsWith('빛이 ')),color:rows.filter(r=>/^(색온도|색조):|을 (거의 보이지 않게|아주 약하게|은은하게|눈에 띄게|강하게) 더한다/.test(r)),shadow:sliceSection(legacy,'그림자'),fill:rows.filter(r=>/^(보조광|피사체 윤곽)/.test(r))};
+ }
+ if(id==='props')return {props:sliceSection(legacy,'소품')};
+ if(id==='style'){
+  const rows=sliceSection(legacy,'스타일');return {render:rows.filter(r=>r.startsWith('표현 방식:')),mood:rows.filter(r=>r.startsWith('분위기:'))};
+ }
+ if(id==='constraints'){
+  const rows=sliceSection(legacy,'필수 조건');return {lock:rows.filter(r=>r.startsWith('기존 구도 유지:')),extra:rows.filter(r=>r.startsWith('추가 필수 조건:'))};
+ }
+ return {};
+}
+function referenceLines(){const rows=[];if(!activeReferenceSlots().length)return rows;
+ for(const i of activeReferenceSlots()){
+  const k='ref'+i,role=values[k];
+  if(role==='촬영환경'){
+   const fields=refScopes.filter(([id])=>values[k+'Scope'+id]).map(([,name])=>name);
+   if(fields.length)rows.push(`이미지 ${i}: ${fields.join('·')} 요소를 촬영환경 레퍼런스로 참고한다.`);
+  } else if(role==='제품')rows.push(`이미지 ${i}: 제품 참고.${values[k+'ProductLock']?' 제품의 원본 디자인, 로고, 라벨, 형태와 비율을 그대로 유지한다.':''}${values[k+'ProductNote']?.trim()?` ${values[k+'ProductNote'].trim()}`:''}`);
+  else if(role==='모델')rows.push(`이미지 ${i}: 동일 모델의 인상, 헤어, 의상 등 외형을 참고한다.`);
+  else if(role==='소품·재질')rows.push(`이미지 ${i}: 소품과 재질의 형태와 배치를 참고한다.`);
+  else if(role==='직접 입력'&&values[k+'Custom']?.trim())rows.push(`이미지 ${i}: ${values[k+'Custom'].trim()}`);
+ }
+ return rows;
+}
+function build(){
+ const blocks=[`[작업목적]\n${values.mode==='직접 입력'?(values.intent?.trim()||'작업목적을 입력해 주세요.'):values.mode}`];
+ if(values.extra?.trim())blocks.push('[필수조건]\n'+values.extra.trim());
+ const refRows=referenceLines();if(refRows.length)blocks.push('[이미지]\n'+refRows.join('\n'));
+ const titles={camera:'카메라',composition:'구도',environment:'배경 및 바닥',lighting:'조명',props:'소품',style:'스타일',constraints:'필수 조건'};
+ for(const id of added){if(isRef(id))continue;
+  const mode=componentModes[id]||'new';const src=refLabel(id);
+  if(mode==='reference'&&src){blocks.push(`[${titles[id]}]\n${src}의 ${titles[id]} 설정을 유지한다.`);continue}
+  const parts=splitFields(id);const scopes=validScopes(id).filter(([k])=>scopeIncluded(id,k));
+  const rows=scopes.flatMap(([key])=>parts[key]||[]);
+  if(mode==='partial'&&src){const prefix=`${src}의 ${titles[id]} 설정을 기준으로 선택한 요소만 변경한다. 나머지는 레퍼런스를 유지한다.`;
+   const custom=(customConditions[id]||'').trim();
+   if(rows.length||custom)blocks.push(`[${titles[id]}]\n`+[prefix,...rows,custom?`추가 변경 조건: ${custom}`:null].filter(Boolean).join('\n'));
+   else blocks.push(`[${titles[id]}]\n${src}의 ${titles[id]} 설정을 유지한다.`);
+  }else if(rows.length){const prefix=src?`${src}의 기존 ${titles[id]} 설정 대신 아래 조건으로 새로 설정한다.`:null;blocks.push(`[${titles[id]}]\n`+[prefix,...rows].filter(Boolean).join('\n'))}
+ }
+ return blocks.join('\n\n')
+}
+// English templates are generated from the same structured controls as Korean.
+// Custom user-entered prose is passed through verbatim: no online translation service is called.
+const englishSectionNames={camera:'Camera',composition:'Composition',environment:'Background & Floor',lighting:'Lighting',props:'Props',style:'Style',constraints:'Constraints'};
+const englishRefLabel=id=>{const refs=refIndices(id);return refs.length?refs.map(i=>`Image ${i}`).join(' and '):null};
+const enStage=(key,phrases)=>phrases[stageIndex(key)];
+function englishFields(id){const v=values;
+ if(id==='camera'){
+  const yaw=Math.abs(v.camYaw);
+  const horizontal=yaw<8?'straight-on front view':yaw<25?`mostly frontal view with a slight view of the ${v.camYaw<0?'left':'right'} side`:yaw<62?`three-quarter view showing the front and ${v.camYaw<0?'left':'right'} side`:`side view from the ${v.camYaw<0?'left':'right'}`;
+  const pitch=v.camPitch<-5?'slightly low-angle upward view':v.camPitch<7?'eye-level view':v.camPitch<27?'slightly elevated angle, with only a small portion of the top visible':v.camPitch<72?'high-angle view showing both the front and top':'nearly top-down overhead view';
+  const perspective=enStage('camPerspective',['compressed perspective with minimal near–far size difference','subtle, stable perspective','natural perspective preserving realistic product proportions','noticeable three-dimensional depth','strong depth with pronounced near–far size difference']);
+  const focal=v.camFocal<40?'wide-angle field of view':v.camFocal>100?'telephoto-style compressed perspective':v.camFocal>65?'stable short-telephoto product photography perspective':null;
+  const framing=enStage('camFrame',['wide framing that includes the surrounding environment','medium framing with balanced surroundings','medium-close framing that emphasizes the product','close-up framing with the product prominent','tight close-up framing focused on the product']);
+  const focus=v.camFocus==='제품 전체 선명'?'Keep the whole product and label sharp.':v.camFocus.includes('얕은')?'Keep the product in focus with a softly blurred background.':'Keep the product sharp with moderate background blur.';
+  return {angle:[`Camera direction: ${horizontal}.`,`Camera height: ${pitch}.`,v.camRoll>4?'Slightly tilt the frame clockwise.':v.camRoll<-4?'Slightly tilt the frame counterclockwise.':null].filter(Boolean),perspective:[`Perspective: ${perspective}.`,focal?`Field of view: ${focal}.`:null].filter(Boolean),framing:[`Framing: ${framing}.`,Math.abs(v.camShiftX)>8?`Shift the product toward the ${v.camShiftX>0?'right':'left'} side of the frame.`:null,Math.abs(v.camShiftY)>8?`Shift the product toward the ${v.camShiftY>0?'lower':'upper'} part of the frame.`:null,`Focus: ${focus}`].filter(Boolean)};
+ }
+ if(id==='composition'){
+  const place={중앙:'centered',좌측:'on the left',우측:'on the right',비대칭:'in an asymmetrical composition','미지정':null}[v.placement];
+  const size={크게:'Make the product the dominant visual element.',보통:'Balance the product with its surroundings.',작게:'Show ample surrounding space around the product.','미지정':null}[v.scale];
+  return {position:place?[`Product position: ${place}.`]:[],size:size?[size]:[]};
+ }
+ if(id==='environment'){
+  const mats={matte:'matte',glossy:'glossy ceramic',metal:'brushed metal',concrete:'concrete',stone:'natural stone',marble:'marble',wood:'wood',fabric:'fabric',glass:'glass',leather:'leather'};
+  const item=(kind,name)=>v[kind+'Mode']==='reference'?`${name}: Retain the reference colors and surface materials.`:`${name}: Use ${v[kind+'Color'].toUpperCase()} with a ${mats[v[kind+'Material']]||'matte'} surface texture.`;
+  return {bg:[item('bg','Background')],floor:[item('floor','Floor')]};
+ }
+ if(id==='lighting'){
+  const types={area:'large soft area light',spot:'directional spotlight',point:'point light radiating from its source',parallel:'directional parallel light'};
+  const side=v.lightPosX<-25?'left':v.lightPosX>25?'right':'center';
+  const vert=v.lightPosY>25?'above':v.lightPosY<-25?'below':'level with the subject';
+  const position=(side==='center'&&vert==='level with the subject')?'in front of the subject':side==='center'?`directly ${vert} the subject`:vert==='level with the subject'?`to the ${side} of the subject`:`${vert} and to the ${side} of the subject`;
+  const intensity=enStage('lightIntensity',['almost no key light','soft, subdued lighting','balanced medium-intensity lighting','bright, clean key light','strong, clearly defined key light']);
+  const feather=enStage('lightFeather',['sharply defined light edges','slightly softened light edges','naturally diffused light','soft, feathered light edges','very broad, softly diffused light']);
+  const falloff={none:'Keep the light relatively even across the scene.',smooth:'Let light diminish gradually with distance.',strong:'Concentrate the light on the main subject, falling off quickly farther away.'}[v.lightFalloff];
+  const colorTemps=v.lightTemp<3700?'warm yellow light':v.lightTemp<5100?'slightly warm neutral light':v.lightTemp<=6100?'neutral daylight':v.lightTemp<7000?'slightly cool daylight':'cool blue-tinted light';
+  const colorMap={warming85:'warm golden',warmingLBA:'soft amber',warming81:'warm yellow',cooling80:'cool blue',coolingLBB:'light blue',cooling82:'clear cyan-blue',red:'red',orange:'orange',yellow:'yellow',green:'green',cyan:'cyan',blue:'blue',violet:'violet',magenta:'magenta',sepia:'sepia',deepRed:'deep red',deepBlue:'deep blue',deepEmerald:'deep emerald',deepYellow:'deep yellow',underwater:'underwater teal'};
+  const tone=v.lightFilter!=='none'&&v.lightFilterDensity>5?`Add a ${colorMap[v.lightFilter]||'selected'} color tint ${enStage('lightFilterDensity',['almost imperceptibly','very subtly','gently','noticeably','strongly'])}.`:'Do not apply an additional color filter.';
+  const fill=v.lightFill?`Use ${enStage('lightFillIntensity',['minimal','subtle','moderate','bright','strong'])} fill light to soften dark areas.`:null;
+  const rim=v.lightRim?`Add ${enStage('lightRimIntensity',['barely perceptible','subtle','moderate','clear','strong'])} rim lighting around the subject.`:null;
+  const spread=v.lightType==='spot'?`Set the spotlight spread ${enStage('lightSpread',['very narrow','narrow','medium','wide','very wide'])}.`:null;
+  const shadows=v.lightShadows?[`Add a natural contact shadow where the product meets the surface. Use ${enStage('lightShadowLength',['extremely short','short','natural-length','long','very long'])} cast shadows with ${enStage('lightShadowDark',['barely visible','light','medium','dark','very dark'])} density and ${enStage('lightShadowSoft',['very crisp','slightly soft','natural','soft','very diffuse'])} edges.`]:['Avoid distinct cast shadows while keeping the product naturally grounded.'];
+  return {key:[`Key light: ${types[v.lightType]}. Use ${intensity}.`,`Light position: ${v.lightDepth==='back'?'behind the subject':'camera-facing side'}, ${position}.`,`Light diffusion: ${feather}.`,spread,falloff].filter(Boolean),color:[v.lightColorMode==='temperature'?`Color temperature: ${colorTemps}.`:tone],shadow:shadows,fill:[fill,rim].filter(Boolean)};
+ }
+ if(id==='props'){
+  const props={'최소화':'Keep props minimal so attention remains on the product.','레퍼런스 유지':'Keep the props and their arrangement from the reference image.','없음':'Do not add unnecessary props.','사용자 지정':v.propsNote.trim()?`Custom props instructions: ${v.propsNote.trim()}`:'Custom props: description required.'};
+  return {props:[props[v.propsMode]||props['최소화']]};
+ }
+ if(id==='style'){
+  const render={'상업용 실사 사진':'photorealistic commercial product photography','프리미엄 에디토리얼':'premium editorial photography','3D 렌더':'3D rendering','라이프스타일 사진':'lifestyle photography','미지정':null}[v.render];
+  const mood={'깨끗하고 고급스러운':'clean, premium','차분하고 절제된':'calm and understated','밝고 경쾌한':'bright and lively','시네마틱':'cinematic','미지정':null}[v.mood];
+  return {render:render?[`Visual style: ${render}.`]:[],mood:mood?[`Mood: ${mood}.`]:[]};
+ }
+ if(id==='constraints'){
+  const lock={'구도 유지':'Preserve the original composition.','구도 변경 허용':'Composition changes are allowed.','미지정':null}[v.lockComposition];
+  return {lock:lock?[lock]:[],extra:v.extra.trim()?[`Additional requirements: ${v.extra.trim()}`]:[]};
+ }
+ return {};
+}
+function englishReferenceLines(){const lines=[];if(!activeReferenceSlots().length)return lines;
+ for(const i of activeReferenceSlots()){
+  const key=`ref${i}`,role=values[key];
+  if(role==='촬영환경'){
+   const labels={camera:'camera and framing',composition:'composition',environment:'background',lighting:'lighting',props:'props'};
+   const fields=refScopes.filter(([id])=>values[`${key}Scope${id}`]).map(([id])=>labels[id]||id);
+   if(fields.length)lines.push(`Image ${i}: Use the ${fields.join(', ')} as a shooting-environment reference.`);
+  }else if(role==='제품')lines.push(`Image ${i}: Use as the product reference.${values[key+'ProductLock']?' Preserve the original product design, logo, label, shape and proportions.':''}${values[key+'ProductNote']?.trim()?` ${values[key+'ProductNote'].trim()}`:''}`);
+  else if(role==='모델')lines.push(`Image ${i}: Use the same model identity, appearance, hairstyle and outfit.`);
+  else if(role==='소품·재질')lines.push(`Image ${i}: Refer to the props, materials and their arrangement.`);
+  else if(role==='직접 입력'&&values[key+'Custom']?.trim())lines.push(`Image ${i}: ${values[key+'Custom'].trim()}`);
+ }
+ return lines;
+}
+function buildEnglish(){
+ const purpose=values.mode==='직접 입력'?(values.intent?.trim()||'Please enter the task purpose.') : ({'새 이미지 제작':'Create a new image.','레퍼런스 제품 교체':'Replace the product using the supplied reference images.','기존 이미지 부분 수정':'Edit specific elements of the existing image.'}[values.mode]||values.mode);
+ const blocks=[`[Task]\n${purpose}`];
+ if(values.extra?.trim())blocks.push('[Requirements]\n'+values.extra.trim());
+ const refs=englishReferenceLines();if(refs.length)blocks.push('[Images]\n'+refs.join('\n'));
+ for(const id of added){if(isRef(id))continue;
+  const title=englishSectionNames[id]||id,mode=componentModes[id]||'new',source=englishRefLabel(id);
+  if(mode==='reference'&&source){blocks.push(`[${title}]\nKeep the ${title.toLowerCase()} settings from ${source}.`);continue}
+  const parts=englishFields(id),scopes=validScopes(id).filter(([key])=>scopeIncluded(id,key));
+  const rows=scopes.flatMap(([key])=>parts[key]||[]);
+  if(mode==='partial'&&source){const instruction=(customConditions[id]||'').trim(),prefix=`Use ${source} as the reference for ${title.toLowerCase()}. Change only the selected elements below; preserve all other reference settings.`;
+   if(rows.length||instruction)blocks.push(`[${title}]\n`+[prefix,...rows,instruction?`Additional change instructions: ${instruction}`:null].filter(Boolean).join('\n'));
+   else blocks.push(`[${title}]\nKeep the ${title.toLowerCase()} settings from ${source}.`);
+  }else if(rows.length){const prefix=source?`Replace the ${title.toLowerCase()} settings from ${source} with the following:`:null;
+   blocks.push(`[${title}]\n`+[prefix,...rows].filter(Boolean).join('\n'))}
+ }
+ return blocks.join('\n\n');
+}
+const currentPrompt=()=>promptLanguage==='en'?buildEnglish():build();
+
+function warnings(){const arr=[];
+ if(added.includes('props')&&componentModes.props!=='reference'&&scopeIncluded('props','props')&&values.propsMode==='사용자 지정'&&!values.propsNote.trim())arr.push('소품을 사용자 지정했지만 설명이 비어 있습니다.');
+ if(values.mode==='직접 입력'&&!values.intent?.trim())arr.push('직접 입력할 작업목적을 작성해 주세요.');
+ for(const i of activeReferenceSlots()){if(values['ref'+i]==='직접 입력'&&!values['ref'+i+'Custom']?.trim())arr.push(`이미지 ${i}: 참고할 요소를 입력해 주세요.`);}
+ for(const id of added)if(componentModes[id]==='partial'&&refLabel(id)&&!(partialScopes[id]||[]).length&&!customConditions[id]?.trim())arr.push(`${componentInfo[id].name}: 일부 변경에서 변경 항목을 선택하거나 사용자 조건을 입력해 주세요.`);
+ const result=currentPrompt();if(result.length>4000)arr.push('프롬프트가 4,000자를 초과했습니다.');return arr;
+}
+function visualValues(){const v={...defaults,...values};const enabled=(id,scope)=>added.includes(id)&&scopeIncluded(id,scope);
+ if(!enabled('composition','position'))v.placement='중앙';if(!enabled('composition','size'))v.scale='보통';
+ if(!enabled('camera','angle')){v.camYaw=0;v.camPitch=13;v.camRoll=0}
+ if(!enabled('camera','perspective')){v.camFocal=70;v.camPerspective=65}
+ if(!enabled('camera','framing')){v.camFrame=82;v.camShiftX=0;v.camShiftY=0}
+ if(!enabled('environment','bg'))v.bgMode='reference';else v.bgMode='custom';
+ if(!enabled('environment','floor'))v.floorMode='reference';else v.floorMode='custom';
+ if(!enabled('lighting','key')){v.lightType='area';v.lightIntensity=90;v.lightPosX=-100;v.lightPosY=100;v.lightDepth='front';v.lightFeather=65;v.lightFalloff='smooth'}
+ if(!enabled('lighting','color')){v.lightColorMode='temperature';v.lightTemp=5600;v.lightFilter='none'}
+ if(!enabled('lighting','shadow')){v.lightShadows=true;v.lightShadowDark=42;v.lightShadowSoft=72;v.lightShadowLength=45}
+ if(!enabled('lighting','fill')){v.lightFill=true;v.lightFillIntensity=30;v.lightRim=false}
+ return v;
+}
+function output(){const result=currentPrompt();$('prompt').textContent=result;$('count').textContent=result.length.toLocaleString()+'자';document.querySelectorAll('[data-prompt-language]').forEach(b=>{const selected=b.dataset.promptLanguage===promptLanguage;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected))});$('translation-note').classList.add('hidden');$('warnings').innerHTML=warnings().map(w=>`<div class="warning">${esc(w)}</div>`).join('');$('light-direction-caption').classList.toggle('is-visible',added.includes('lighting')&&scopeIncluded('lighting','key'));drawPreview()}
+function paintSliders(){document.querySelectorAll('#fields input[type="range"]').forEach(el=>{const min=Number(el.min)||0,max=Number(el.max)||100,v=Number(el.value);el.style.setProperty('--progress',`${Math.max(0,Math.min(100,(v-min)/(max-min)*100))}%`)})}
+function genericFields(id){const g=groups.find(g=>g.id===id);if(!g)return '';return g.fields.map(([key,title,options,placeholder])=>{if(options)return select(key,title,options.map(x=>[x,x]));return `<div class="field"><div class="fieldtop"><label for="ctrl-${key}">${title}</label></div><textarea id="ctrl-${key}" data-key="${key}" placeholder="${esc(placeholder||'')}">${esc(values[key]||'')}</textarea></div>`}).join('')}
+function editorControls(id){if(isRef(id))return referenceHTML(refNumber(id));if(id==='camera')return cameraHTML();if(id==='lighting')return lightingHTML();if(id==='environment')return environmentHTML();if(id==='props')return propsHTML();return `<div class="sect simple-fields">${genericFields(id)}</div>`}
+function updatePartialDisplay(id){
+ const root=$('control-fields');if(!root)return;const partial=componentModes[id]==='partial';
+ if(!partial)return;
+ let children=[];
+ if(id==='camera')children=[root.querySelector('.seg'),...root.querySelectorAll('details.sect')];
+ else if(id==='lighting')children=[...root.querySelectorAll('details.sect')];
+ else if(id==='environment')children=[...root.querySelectorAll('.surface-card')];
+ else if(id==='props')children=[root.querySelector('.sect')];
+ else children=[...root.querySelectorAll('.field')].filter(el=>!el.closest('.reference-card'));
+ const keys=(scopeConfig[id]||[]).map(([k])=>k);
+ children.forEach((element,i)=>{
+  if(!element)return;
+  let mapped=keys[i];
+  if(id==='camera'&&i===1)mapped='angle';else if(id==='camera'&&i>1)mapped=keys[i-1];
+  if(id==='camera'&&i===0)mapped='angle';
+  if(id==='props'){mapped='props'}
+  if(mapped)element.classList.toggle('hidden',!partialEnabled(id,mapped));
+ });
+ const hint=root.querySelector('.presethint');if(hint)hint.classList.add('hidden');
+ const note=root.querySelector('.surface-global-note');if(note)note.classList.add('hidden');
+}
+function shortValue(value,max=39){const text=String(value??'').trim().replace(/\s+/g,' ');return text.length>max?text.slice(0,max-1)+'…':text}
+function scopeChipLabel(id,key){
+ const v=values;
+ if(id==='camera'){
+  if(key==='angle')return `${stageName('camYaw')} · ${stageName('camPitch')}`;
+  if(key==='perspective')return `원근감 · ${stageName('camPerspective')}`;
+  if(key==='framing')return `프레이밍 · ${stageName('camFrame')}`;
+ }
+ if(id==='composition')return key==='position'?`위치 · ${v.placement}`:`화면 비중 · ${v.scale}`;
+ if(id==='environment'){
+  const kind=key==='bg'?'bg':'floor',name=key==='bg'?'배경':'바닥';
+  return v[kind+'Mode']==='reference'?`${name} · 레퍼런스 유지`:`${name} · ${materialName(v[kind+'Material'])} · ${v[kind+'Color'].toUpperCase()}`;
+ }
+ if(id==='lighting'){
+  if(key==='key'){
+   const pos=lightPosPresets.find(([x,y])=>x===v.lightPosX&&y===v.lightPosY);
+   return `빛 · ${pos?.[2]||'정면'} · ${stageName('lightIntensity')}`;
+  }
+  if(key==='color')return v.lightColorMode==='temperature'?`색온도 · ${stageName('lightTemp')}`:`색조 · ${shortValue((filterPresets.find(p=>p[0]===v.lightFilter)||[])[1]||'보정 없음',22)}`;
+  if(key==='shadow')return v.lightShadows?`그림자 · ${stageName('lightShadowDark')}`:'그림자 · 없음';
+  if(key==='fill')return [v.lightFill?'보조광':null,v.lightRim?'윤곽광':null].filter(Boolean).join(' · ')||'보조광 사용 안 함';
+ }
+ if(id==='props')return v.propsMode==='사용자 지정'?`소품 · ${shortValue(v.propsNote||'설명 필요',23)}`:`소품 · ${v.propsMode}`;
+ if(id==='style')return key==='render'?`표현 · ${v.render}`:`분위기 · ${v.mood}`;
+ if(id==='constraints')return key==='lock'?`구도 · ${v.lockComposition}`:`추가 조건 · ${shortValue(v.extra,24)}`;
+ return scopeConfig[id]?.find(([k])=>k===key)?.[1]||key;
+}
+function chipHTML(label,buttonAttrs,tooltip){return `<span class="component-pill" title="${esc(label)}"><span class="component-pill-text">${esc(label)}</span><button type="button" class="component-pill-remove" ${buttonAttrs} aria-label="${esc(tooltip||label+' 조건 제외')}" title="조건 제외">×</button></span>`}
+function componentChips(id){
+ if(isRef(id)){
+  const i=refNumber(id),role=values[`ref${i}`],items=[];
+  if(role==='촬영환경'){
+   for(const [scope,name] of refScopes)if(values[`ref${i}Scope${scope}`])items.push(chipHTML(`참고 · ${name}`,`data-remove-ref-scope="${scope}" data-ref-index="${i}"`,`이미지 ${i}의 ${name} 참고 제외`));
+  }else items.push(`<span class="component-pill is-locked">${esc(role)}</span>`);
+  if(role==='제품'&&values[`ref${i}ProductLock`])items.push(`<span class="component-pill is-locked">원본 디자인·비율 유지</span>`);
+  return items;
+ }
+ const mode=componentModes[id]||'new';
+ if(mode==='reference')return [`<span class="component-pill is-locked">레퍼런스 유지</span>`];
+ return validScopes(id).filter(([key])=>scopeIncluded(id,key) && (splitFields(id)[key]||[]).length).map(([key])=>chipHTML(shortValue(scopeChipLabel(id,key),45),`data-remove-scope="${key}" data-component="${id}"`,`${componentInfo[id].name}의 ${scopeConfig[id].find(([k])=>k===key)?.[1]||key} 조건 제외`));
+}
+function hasRestorableScopes(id){
+ if(isRef(id))return values[`ref${refNumber(id)}`]==='촬영환경'&&!!(removedScopes[id]||[]).length;
+ return !!(removedScopes[id]||[]).length;
+}
+function activeComponentsCards(){return added.map(id=>{
+ const c=componentInfo[id],selected=active===id,chips=componentChips(id);
+ const mode=componentModes[id]||'new';const modeLabel=isRef(id)?'참고 이미지':mode==='partial'?'일부 변경':mode==='reference'?'레퍼런스 유지':'새로 설정';
+ return `<article class="board-card ${selected?'is-editing':''}" data-component-card="${id}">
+ <div class="board-card-top"><span class="board-card-icon" aria-hidden="true">${c.icon}</span><button type="button" class="board-card-remove" data-remove="${id}" aria-label="${c.name} 컴포넌트 빼기" title="컴포넌트 빼기">−</button></div>
+ <button type="button" class="board-card-heading" data-nav="${id}" aria-label="${c.name} 상세 설정 열기"><strong class="board-card-title">${c.name}</strong><span class="board-card-mode">${modeLabel}</span></button>
+ <div class="board-card-rule"></div>
+ <div class="board-chip-list" role="group" aria-label="${c.name}에 적용된 조건">${chips.length?chips.join(''):''}</div>
+ <div class="board-card-bottom"><button type="button" class="board-card-edit" data-nav="${id}">설정 편집 <span aria-hidden="true">↗</span></button>${hasRestorableScopes(id)?`<button type="button" class="board-card-restore" data-restore-scopes="${id}" title="제외한 조건 다시 표시">+ 복원</button>`:''}</div>
+ </article>`;
+ }).join('')}
+function taskHTML(){return `<section class="task-main-card dashboard-purpose" aria-labelledby="purpose-heading">
+ <div class="dashboard-card-head"><div><div class="dashboard-kicker">01 · 필수 설정</div><h2 id="purpose-heading">작업목적</h2></div></div>
+ <div class="field"><div class="choice-options task-options" role="radiogroup" aria-label="작업목적 선택">${[['새 이미지 제작','새 이미지 제작',''],['레퍼런스 제품 교체','레퍼런스 제품 교체',''],['기존 이미지 부분 수정','기존 이미지 부분 수정',''],['직접 입력','직접 입력','']].map(([val,name,help])=>`<button type="button" role="radio" aria-checked="${values.mode===val}" class="choice-tile ${values.mode===val?'selected':''}" data-choice-key="mode" data-choice-value="${val}"><strong>${name}</strong></button>`).join('')}</div></div>
+ ${values.mode==='직접 입력'?`<div class="field purpose-custom"><div class="fieldtop"><label for="ctrl-intent">작업목적 직접 작성</label></div><textarea id="ctrl-intent" data-key="intent" rows="3" placeholder="예: 이미지 1의 구도와 배경을 참고해 이미지 2의 제품으로 교체한 연출컷을 제작한다.">${esc(values.intent)}</textarea></div>`:''}
+ <div class="field purpose-requirements"><div class="fieldtop"><label for="ctrl-extra">필수조건 <span class="optional-field-tag">선택</span></label></div><textarea id="ctrl-extra" data-key="extra" rows="3" placeholder="필요한 경우에만 작성하세요. 예: 제품의 비율과 라벨을 변경하지 않는다.">${esc(values.extra||'')}</textarea></div>
+ </section>
+ <div class="dashboard-board-head"><div><div class="dashboard-kicker">02 · 선택 설정</div><h2>내 컴포넌트 <span class="small-count">${added.length}</span></h2></div></div>
+ <div class="dashboard-board ${added.length?'has-cards':''}">${activeComponentsCards()}<button class="board-add-card" type="button" data-open-catalog><span class="board-add-icon">＋</span><strong>컴포넌트 추가</strong></button></div>`}
+function modeHTML(id){if(isRef(id)||id==='constraints'||id==='style')return '';
+ const source=refLabel(id),mode=componentModes[id]||'new';
+ const modes=[['reference','레퍼런스 유지',''],['partial','일부 변경',''],['new','새로 설정','']];
+ return `<div class="mode-panel"><div class="fieldtop"><span class="fieldlabel">설정 방식</span></div><div class="mode-row">${modes.map(([key,label,help])=>`<button type="button" data-mode="${key}" class="mode-choice ${mode===key?'active':''}" ${(!source&&key!=='new')||(source&&key==='new')?'disabled':''}><strong>${label}</strong></button>`).join('')}</div></div>`}
+function partialHTML(id){const scopes=validScopes(id);return `<section class="partial-panel"><div class="block-header"><div><h2>변경할 요소</h2></div>${allCheckboxUI('partial',scopes,key=>partialEnabled(id,key))}</div><div class="scope-list">${scopes.map(([key,name])=>`<label class="scope-label"><input type="checkbox" data-partial-scope="${key}" ${partialEnabled(id,key)?'checked':''}>${name}</label>`).join('')}</div></section>`}
+function scopeInclusionHTML(id){
+ const fields=validScopes(id);if(!fields.length)return '';
+ return `<section class="include-scope-panel"><div class="include-scope-heading"><span>프롬프트에 포함할 조건</span>${allCheckboxUI('include',fields,key=>scopeIncluded(id,key))}</div><div class="include-scope-list">${fields.map(([key,label])=>`<label class="include-scope-choice"><input type="checkbox" data-include-scope="${key}" ${scopeIncluded(id,key)?'checked':''}><span>${label}</span></label>`).join('')}</div></section>`;
+}
+function updateNav(){const nav=$('nav');if(nav)nav.innerHTML=''}
+function editorNavigationHTML(){
+ if(added.length<2)return '';
+ return `<div class="editor-tab-strip" role="tablist" aria-label="작업 컴포넌트 이동">${added.map(id=>`<button type="button" role="tab" aria-selected="${active===id}" class="editor-tab ${active===id?'active':''}" data-nav="${id}">${esc(componentInfo[id].name)}</button>`).join('')}</div>`;
+}
+function render(){
+ const main=$('workspace-main');
+ const previousScroll=main.scrollTop;
+ if(active!=='task'&&!added.includes(active))active='task';
+ normalizeModes();updateNav();
+ const editing=active!=='task';
+ $('heading').textContent=editing?`${componentInfo[active].name} 설정`:'새 프롬프트';
+ $('description').textContent='';
+ $('remove-active').classList.add('hidden');
+ if(editing){
+  const actualMode=componentModes[active]||'new',canRef=hasReference(active);
+  const controls=actualMode==='reference'&&canRef
+   ?`<div class="keep-explainer">${refLabel(active)} 유지</div>`
+   :actualMode==='partial'&&canRef
+    ?partialHTML(active)+`<div id="control-fields" class="editable-controls">${editorControls(active)}</div><div class="custom-partial"><label for="custom-condition">사용자 조건</label><textarea id="custom-condition" data-custom-condition="${active}" placeholder="예: 제품 정면은 밝게 유지하면서 그림자는 더 짧게 표현">${esc(customConditions[active]||'')}</textarea></div>`
+    :scopeInclusionHTML(active)+`<div id="control-fields" class="editable-controls">${editorControls(active)}</div>`;
+  $('fields').innerHTML=`${editorNavigationHTML()}<section class="dashboard-editor inline-editor" id="active-editor" aria-labelledby="editor-heading"><div class="dashboard-editor-heading"><div><h2 id="editor-heading">${componentInfo[active].name}</h2></div><button type="button" class="editor-close" data-close-editor aria-label="변경 취소하고 닫기" title="변경 취소">×</button></div>${modeHTML(active)}${controls}<div class="editor-end-actions"><button type="button" class="btn editor-done" data-save-editor>저장</button></div></section>`;
+ }else{
+  $('fields').innerHTML=taskHTML();
+ }
+ document.body.classList.toggle('workspace-editing',editing);
+ // The left pane is the only editor scroll container. The preview stays visible at right.
+ main.scrollTop=previousScroll;
+ if(editing&&componentModes[active]==='partial'&&hasReference(active))updatePartialDisplay(active);
+ paintSliders();output();
+}
+
+function refreshUI(){normalizeModes();persist();render()}
+function showCatalog(){
+ modalOpen=true;
+ const refCount=activeReferenceSlots().length;
+ const catalog=$('component-catalog');
+ catalog.innerHTML=Object.entries(componentInfo).filter(([id])=>!isRef(id)).map(([id,item])=>{
+  const reference=id==='reference',disabled=reference?refCount>=4:added.includes(id);
+  const text=reference?`${refCount}/4장 · 이미지별로 독립 추가`:item.desc;
+  const marker=reference?(disabled?'최대 4장':`＋ ${refCount+1}번째 이미지`):(disabled?'추가됨':'＋');
+  return `<button class="catalog-card ${disabled?'is-added':''}" data-add="${id}" ${disabled?'disabled':''}><span class="catalog-icon">${item.icon}</span><span><strong>${item.name}</strong></span><span class="catalog-mark">${marker}</span></button>`;
+ }).join('');
+ $('component-dialog').classList.remove('hidden');$('close-dialog').focus();
+}
+function hideCatalog(){modalOpen=false;$('component-dialog').classList.add('hidden')}
+function resetSmallScreenScroll(){if(window.innerWidth<=850)requestAnimationFrame(()=>window.scrollTo(0,0));}
+function addComponent(id){
+ if(id==='reference'&&activeReferenceSlots().length>=4)return;
+ if(id!=='reference'&&(!componentInfo[id]||isRef(id)||added.includes(id)))return;
+ startEditorTransaction();
+ if(id==='reference'){
+  const count=activeReferenceSlots().length;
+  if(count>=4)return;
+  const i=count+1,refId=`reference${i}`;
+  resetReferenceSlot(i);
+  values[`ref${i}`]=i===1?'촬영환경':i===2?'제품':i===3?'모델':'소품·재질';
+  values.refCount=i;
+  added.push(refId);
+  active=refId;hideCatalog();$('workspace-main').scrollTop=0;refreshUI();resetSmallScreenScroll();
+  requestAnimationFrame(()=>$('active-editor')?.querySelector('[data-close-editor]')?.focus({preventScroll:true}));
+  return;
+ }
+ if(!componentInfo[id]||isRef(id)||added.includes(id))return;
+ added.push(id);componentModes[id]=hasReference(id)?'reference':'new';
+ if(id==='environment'){values.bgMode='custom';values.floorMode='custom'}
+ if(id==='props'&&!hasReference('props')&&values.propsMode==='레퍼런스 유지')values.propsMode='최소화';
+ partialScopes[id]=[];customConditions[id]='';omittedScopes[id]=validScopes(id).map(([key])=>key);removedScopes[id]=[];
+ active=id;hideCatalog();$('workspace-main').scrollTop=0;refreshUI();resetSmallScreenScroll();
+ requestAnimationFrame(()=>$('active-editor')?.querySelector('[data-close-editor]')?.focus({preventScroll:true}));
+}
+function removeComponent(id){
+ if(!added.includes(id))return;
+ if(isRef(id)){
+  const removedIndex=refNumber(id),oldCount=activeReferenceSlots().length;
+  // Compact image numbering so reference IDs always match the order in the UI.
+  for(let i=removedIndex;i<oldCount;i++)for(const suffix of referenceSuffixes)values[`ref${i}${suffix}`]=values[`ref${i+1}${suffix}`];
+  for(let i=removedIndex;i<oldCount;i++)removedScopes[`reference${i}`]=removedScopes[`reference${i+1}`]||[];
+  delete removedScopes[`reference${oldCount}`];
+  resetReferenceSlot(oldCount);
+  values.refCount=oldCount-1;
+  added=added.filter(x=>x!==id).map(x=>isRef(x)&&refNumber(x)>removedIndex?`reference${refNumber(x)-1}`:x);
+  if(isRef(active))active='task';
+ }else{
+  added=added.filter(x=>x!==id);delete componentModes[id];delete partialScopes[id];delete customConditions[id];delete omittedScopes[id];delete removedScopes[id];
+  if(active===id)active='task';
+ }
+ refreshUI();
+}
+// Individual component input handling
+function applySurfaceColor(kind,hex){if(!isHex(hex))return false;const color=hex.toLowerCase();values[kind+'Color']=color;const picker=document.querySelector(`[data-surface-color="${kind}"]`),field=document.querySelector(`[data-surface-hex="${kind}"]`);if(picker)picker.value=color;if(field){field.value=color.toUpperCase();field.classList.remove('invalid')}persist();output();return true}
+$('fields').addEventListener('input',event=>{
+ const t=event.target,kind=t.dataset.surfaceColor,hexKind=t.dataset.surfaceHex;
+ if(kind){applySurfaceColor(kind,t.value);return}
+ if(hexKind){const input=t.value.trim().toUpperCase();t.classList.toggle('invalid',!isHex(input));if(isHex(input))applySurfaceColor(hexKind,input);return}
+ if(t.dataset.customCondition){customConditions[t.dataset.customCondition]=t.value;persist();output();return}
+ if(t.dataset.selectAll){
+  const set=t.checked,kind=t.dataset.selectAll;
+  if(kind==='reference'){
+   const i=Number(t.dataset.selectAllRef),id=`reference${i}`;
+   for(const [key] of refScopes){const k=`ref${i}Scope${key}`,was=!!values[k];values[k]=set;if(set)clearRemoved(id,key);else if(was)markRemoved(id,key)}
+  }else if(kind==='partial'){
+   const scopes=validScopes(active).map(([key])=>key),previous=partialScopes[active]||[];
+   partialScopes[active]=set?[...scopes]:[];
+   for(const key of scopes){if(set){omittedScopes[active]=(omittedScopes[active]||[]).filter(k=>k!==key);clearRemoved(active,key)}else if(previous.includes(key)){omittedScopes[active]=[...new Set([...(omittedScopes[active]||[]),key])];markRemoved(active,key)}}
+  }else if(kind==='include'){
+   const scopes=validScopes(active).map(([key])=>key),previous=scopes.filter(key=>scopeIncluded(active,key));
+   omittedScopes[active]=set?[]:[...scopes];
+   for(const key of scopes){if(set)clearRemoved(active,key);else if(previous.includes(key))markRemoved(active,key)}
+  }
+  refreshUI();return;
+ }
+ if(t.dataset.includeScope){const key=t.dataset.includeScope,was=scopeIncluded(active,key);omittedScopes[active]=t.checked?(omittedScopes[active]||[]).filter(k=>k!==key):[...new Set([...(omittedScopes[active]||[]),key])];if(t.checked)clearRemoved(active,key);else if(was)markRemoved(active,key);refreshUI();return}
+ if(t.dataset.partialScope){
+  const key=t.dataset.partialScope,scopes=partialScopes[active]||[];
+  const wasSelected=scopes.includes(key);
+  partialScopes[active]=t.checked?[...new Set([...scopes,key])]:scopes.filter(k=>k!==key);
+  if(t.checked){omittedScopes[active]=(omittedScopes[active]||[]).filter(k=>k!==key);clearRemoved(active,key)}
+  else if(wasSelected){omittedScopes[active]=[...new Set([...(omittedScopes[active]||[]),key])];markRemoved(active,key)}
+  if(active==='environment'&&t.checked)values[key+'Mode']='custom';refreshUI();return}
+
+ const key=t.dataset.key;if(!key||!Object.hasOwn(values,key))return;
+ const val=t.type==='checkbox'?t.checked:(t.type==='number'||t.type==='range')?Number(t.value):t.value;
+ if(typeof defaults[key]==='number'&&!Number.isFinite(val))return;
+ values[key]=val;
+ // Editing a selected setting counts as selecting it again.
+ const scopeByKey={camYaw:'angle',camPitch:'angle',camRoll:'angle',camFocal:'perspective',camPerspective:'perspective',camFrame:'framing',camFocus:'framing',placement:'position',scale:'size',bgColor:'bg',bgMaterial:'bg',floorColor:'floor',floorMaterial:'floor',lightType:'key',lightDepth:'key',lightIntensity:'key',lightFalloff:'key',lightSpread:'key',lightFeather:'key',lightColorMode:'color',lightTemp:'color',lightFilter:'color',lightShadows:'shadow',lightShadowDark:'shadow',lightShadowSoft:'shadow',lightShadowLength:'shadow',lightFill:'fill',lightRim:'fill',lightFillIntensity:'fill',lightRimIntensity:'fill',propsMode:'props',propsNote:'props',render:'render',mood:'mood',lockComposition:'lock',extra:'extra'};
+ if(active!=='task'&&scopeByKey[key]&&componentModes[active]==='new'){omittedScopes[active]=(omittedScopes[active]||[]).filter(x=>x!==scopeByKey[key]);clearRemoved(active,scopeByKey[key])}
+ if(/^ref[1-4]Scope/.test(key)){const m=key.match(/^ref([1-4])Scope(.+)$/);if(m){if(val)clearRemoved(`reference${m[1]}`,m[2]);else markRemoved(`reference${m[1]}`,m[2])}}
+ persist();output();
+});
+$('fields').addEventListener('change',event=>{
+ const t=event.target;if(t.dataset.surfaceHex&&!isHex(t.value.trim())){t.value=values[t.dataset.surfaceHex+'Color'].toUpperCase();t.classList.remove('invalid')}
+ const key=t.dataset.key;
+ if(key&&['lightType','lightShadows','lightFill','lightRim','lightColorMode','propsMode'].includes(key))render();
+});
+$('fields').addEventListener('click',event=>{
+ const removeScope=event.target.closest('[data-remove-scope]');
+ if(removeScope){omitScope(removeScope.dataset.component,removeScope.dataset.removeScope);refreshUI();return}
+ const restore=event.target.closest('[data-restore-scopes]');
+ if(restore){restoreScopes(restore.dataset.restoreScopes);refreshUI();return}
+ const removeRefScope=event.target.closest('[data-remove-ref-scope]');
+ if(removeRefScope){const i=Number(removeRefScope.dataset.refIndex),key=removeRefScope.dataset.removeRefScope;if(i>=1&&i<=values.refCount&&refScopes.some(([id])=>id===key)){values[`ref${i}Scope${key}`]=false;markRemoved(`reference${i}`,key);refreshUI();}return}
+ const removeCard=event.target.closest('[data-remove]');if(removeCard){removeComponent(removeCard.dataset.remove);return}
+ if(event.target.closest('[data-close-editor]')){cancelEditor();return}
+ if(event.target.closest('[data-save-editor]')){saveEditor();return}
+ const nav=event.target.closest('[data-nav]');if(nav){const target=nav.dataset.nav;const changed=target!==active;if(target!=='task')startEditorTransaction();active=target;render();if(changed){$('workspace-main').scrollTop=0;resetSmallScreenScroll()}return}
+ if(event.target.closest('[data-open-catalog]')){showCatalog();return}
+ const mode=event.target.closest('[data-mode]');if(mode){if(mode.disabled)return;componentModes[active]=mode.dataset.mode;omittedScopes[active]=componentModes[active]==='new'?validScopes(active).map(([key])=>key):[];removedScopes[active]=[];if(active==='environment'&&componentModes[active]!=='reference'){values.bgMode='custom';values.floorMode='custom'}refreshUI();return}
+ const stage=event.target.closest('[data-stage-key]');if(stage){const key=stage.dataset.stageKey,index=Number(stage.dataset.stageIndex),spec=stageDefinitions[key];if(!spec||index<0||index>=spec.values.length)return;values[key]=spec.values[index];reinstateChangedScope(key);refreshUI();return}
+ const material=event.target.closest('[data-material-key]');if(material){if(!materials.some(m=>m.id===material.dataset.materialId))return;values[material.dataset.materialKey]=material.dataset.materialId;reinstateChangedScope(material.dataset.materialKey);refreshUI();return}
+ const light=event.target.closest('[data-light-x]');if(light){values.lightPosX=Number(light.dataset.lightX);values.lightPosY=Number(light.dataset.lightY);reinstateChangedScope('lightPosX');refreshUI();return}
+ const choice=event.target.closest('[data-choice-key]');if(choice){const key=choice.dataset.choiceKey;if(!Object.hasOwn(defaults,key))return;values[key]=choice.dataset.choiceValue;reinstateChangedScope(key);refreshUI();return}
+ const preset=event.target.closest('[data-preset]');if(preset){Object.assign(values,presets[preset.dataset.preset]);reinstateChangedScope('camYaw');refreshUI();return}
+});
+$('nav').addEventListener('click',event=>{
+ const remove=event.target.closest('[data-remove]');if(remove){removeComponent(remove.dataset.remove);return}
+ const nav=event.target.closest('[data-nav]');if(nav){if(nav.dataset.nav!=='task')startEditorTransaction();active=nav.dataset.nav;render();return}
+ if(event.target.closest('[data-open-catalog]'))showCatalog();
+});
+$('remove-active').onclick=()=>removeComponent(active);
+$('component-catalog').addEventListener('click',event=>{const btn=event.target.closest('[data-add]');if(btn)addComponent(btn.dataset.add)});
+$('close-dialog').onclick=hideCatalog;
+$('component-dialog').addEventListener('click',event=>{if(event.target.id==='component-dialog')hideCatalog()});
+document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;if(modalOpen){hideCatalog();return}if(document.body.classList.contains('mobile-prompt-open')){setMobilePromptMenu(false);return}if(active!=='task')cancelEditor()});
+let resetFeedbackTimeout;
+$('reset').onclick=()=>{
+ if(modalOpen)hideCatalog();
+ if(document.body.classList.contains('mobile-prompt-open'))setMobilePromptMenu(false);
+ editSession=null;values={...defaults};added=[];componentModes={};partialScopes={};customConditions={};omittedScopes={};removedScopes={};promptLanguage='ko';active='task';
+ normalizeModes();persist();render();$('workspace-main').scrollTop=0;resetSmallScreenScroll();
+ const button=$('reset');button.textContent='초기화됨';
+ clearTimeout(resetFeedbackTimeout);resetFeedbackTimeout=setTimeout(()=>{button.textContent='기본값 초기화'},1400);
+};
+$('save-enabled').checked=saveEnabled;
+$('save-enabled').addEventListener('change',event=>{
+ saveEnabled=event.target.checked;
+ try{localStorage.setItem(SAVE_PREFERENCE_KEY,String(saveEnabled))}catch(e){}
+ persist();
+});
+document.querySelector('.prompt-language').addEventListener('click',event=>{
+ const button=event.target.closest('[data-prompt-language]');if(!button)return;
+ promptLanguage=button.dataset.promptLanguage==='en'?'en':'ko';persist();output();
+});
+async function copyCurrentPrompt(){
+ const result=currentPrompt();let success=false;
+ try{await navigator.clipboard.writeText(result);success=true}catch(e){try{const area=document.createElement('textarea');area.value=result;document.body.append(area);area.select();success=document.execCommand('copy');area.remove()}catch(err){}}
+ $('status').textContent=success?'프롬프트를 복사했습니다.':'자동 복사가 지원되지 않습니다. 프롬프트에서 텍스트를 선택해 복사하세요.';
+ return success;
+}
+$('copy').onclick=()=>copyCurrentPrompt();
+$('mobile-copy').onclick=async()=>{const success=await copyCurrentPrompt();if(success){const button=$('mobile-copy');button.textContent='복사 완료';setTimeout(()=>button.textContent='프롬프트 복사',1300)}};
+function setMobilePromptMenu(open){document.body.classList.toggle('mobile-prompt-open',open);$('mobile-menu-toggle').setAttribute('aria-expanded',String(open));$('mobile-menu-toggle').setAttribute('aria-label',open?'종합 프롬프트 및 파일 메뉴 닫기':'종합 프롬프트 및 파일 메뉴 열기');if(open)requestAnimationFrame(()=>{drawPreview();$('prompt').scrollTop=0})}
+$('mobile-menu-toggle').onclick=()=>setMobilePromptMenu(!document.body.classList.contains('mobile-prompt-open'));
+$('mobile-menu-backdrop').onclick=()=>setMobilePromptMenu(false);
+window.addEventListener('resize',()=>{if(innerWidth>850&&document.body.classList.contains('mobile-prompt-open'))setMobilePromptMenu(false)});
+
+function download(name,contents,type){const url=URL.createObjectURL(new Blob([contents],{type})),link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),500)}
+$('export').onclick=()=>download('prompt-studio-settings.json',JSON.stringify({version:3,values,added,componentModes,partialScopes,customConditions,omittedScopes,removedScopes,promptLanguage},null,2),'application/json;charset=utf-8');
+$('import').onclick=()=>$('file').click();
+$('file').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;try{const json=JSON.parse(await file.text());if(!json||typeof json!=='object'||Array.isArray(json)||(!json.values&&!Object.keys(json).some(k=>Object.hasOwn(defaults,k))))throw new Error('invalid');editSession=null;loadWorkspace(json);active='task';refreshUI();$('status').textContent='설정을 불러왔습니다.'}catch(e){$('status').textContent='올바른 Prompt Studio JSON 파일이 아닙니다.'}event.target.value=''});
+// ------- 독립형 시각화: 카메라 투시 투영 + 스튜디오 조명의 근사 렌더링 -------
+const canvas=$('scene'),ctx=canvas.getContext('2d');let canvasW=600,canvasH=405;
+function hexRGB(hex){const v=hex.replace('#','');return [parseInt(v.slice(0,2),16),parseInt(v.slice(2,4),16),parseInt(v.slice(4,6),16)]}
+function tempRGB(k){const t=k/100;let r,g,b;if(t<=66){r=255;g=99.4708025861*Math.log(t)-161.1195681661;b=t<=19?0:138.5177312231*Math.log(t-10)-305.0447927307}else{r=329.698727446*Math.pow(t-60,-.1332047592);g=288.1221695283*Math.pow(t-60,-.0755148492);b=255}return [r,g,b].map(n=>Math.max(0,Math.min(255,n)))}
+function rgb(arr,a=1){return `rgba(${arr.map(n=>Math.round(n)).join(',')},${a})`}
+function lerp(a,b,t){return a.map((x,i)=>x+(b[i]-x)*t)}
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+function drawPreview(){
+ const values=visualValues();
+ if(!ctx)return;
+ const rect=canvas.getBoundingClientRect(),w=rect.width||440,h=rect.height||300;
+ if(w<30||h<30)return;
+ const dpr=Math.min(window.devicePixelRatio||1,2);
+ if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){
+   canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+ }
+ ctx.setTransform(dpr,0,0,dpr,0,0);canvasW=w;canvasH=h;ctx.clearRect(0,0,w,h);
+ const clamp=(v,min=0,max=1)=>Math.min(max,Math.max(min,v));
+ const filterMode=values.lightColorMode==='filter';
+ const colorTemp=tempRGB(filterMode?5600:values.lightTemp),tint=hexRGB((filterPresets.find(p=>p[0]===values.lightFilter)||filterPresets[0])[2]);
+ const keyColor=lerp(colorTemp,tint,!filterMode||values.lightFilter==='none'?0:(values.lightFilterDensity/100)*.78);
+ const key=values.lightIntensity/100,fill=values.lightFill?values.lightFillIntensity/100:0;
+ const keyStrength=clamp(key/2,0,1),overall=clamp(.21+key*.31+fill*.15,.17,1.04);
+ const wallBase=values.bgMode==='custom'?hexRGB(values.bgColor):[210,217,226];
+ const groundBase=values.floorMode==='custom'?hexRGB(values.floorColor):[207,211,218];
+ const lit=color=>color.map((v,i)=>clamp(v*(.43+overall*.78)+keyColor[i]*.028+(!filterMode||values.lightFilter==='none'?0:(keyColor[i]-180)*key*.045),8,252));
+ const wall=lit(wallBase),ground=lit(groundBase),horizon=h*.57;
+ const wallGrad=ctx.createLinearGradient(0,0,0,horizon);
+ wallGrad.addColorStop(0,rgb(wall.map(v=>clamp(v+9,0,255))));wallGrad.addColorStop(1,rgb(wall.map(v=>clamp(v-7,0,255))));
+ ctx.fillStyle=wallGrad;ctx.fillRect(0,0,w,horizon);
+ const floorGrad=ctx.createLinearGradient(0,horizon,0,h);
+ floorGrad.addColorStop(0,rgb(ground.map(v=>clamp(v+12,0,255))));floorGrad.addColorStop(1,rgb(ground.map(v=>clamp(v-30,0,255))));
+ ctx.fillStyle=floorGrad;ctx.fillRect(0,horizon,w,h-horizon);
+ ctx.fillStyle='rgba(28,33,43,.10)';ctx.fillRect(0,horizon,w,1);
+ // Approximate material texture: independent wall and floor treatment, not physical rendering.
+ const texture=(kind,top,bottom)=>{if(values[kind+'Mode']!=='custom')return;
+   const m=values[kind+'Material'],reflective=['glossy','metal','marble','glass'].includes(m);
+   ctx.save();ctx.beginPath();ctx.rect(0,top,w,bottom-top);ctx.clip();
+   const seed=(n)=>(Math.sin(n*78.233+6.919)*43758.5453)%1;
+   if(['concrete','stone','leather','fabric'].includes(m)){
+     const count=240;
+     for(let i=0;i<count;i++){const x=Math.abs(seed(i+1))*w,y=top+Math.abs(seed(i+473))*(bottom-top);ctx.fillStyle=i%3===0?'rgba(255,255,255,.10)':'rgba(36,39,44,.10)';ctx.beginPath();ctx.arc(x,y,0.85,0,Math.PI*2);ctx.fill()}
+   }
+   if(m==='wood'||m==='fabric'||m==='metal'){
+     ctx.lineWidth=.6;ctx.strokeStyle=m==='wood'?'rgba(82,40,18,.18)':m==='fabric'?'rgba(25,35,45,.13)':'rgba(255,255,255,.16)';
+     const gap=m==='fabric'?6:m==='wood'?14:5;
+     for(let y=top;y<bottom;y+=gap){ctx.beginPath();ctx.moveTo(0,y+Math.sin(y*.12)*2);ctx.lineTo(w,y+Math.cos(y*.09)*2);ctx.stroke()}
+     if(m==='fabric')for(let x=0;x<w;x+=gap){ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,bottom);ctx.stroke()}
+   }
+   if(m==='marble'||m==='stone'){
+     ctx.strokeStyle='rgba(41,61,65,.16)';ctx.lineWidth=1.2;
+     for(let k=0;k<7;k++){let x=w*(k/6)-w*.2;ctx.beginPath();ctx.moveTo(x,top);ctx.bezierCurveTo(x+55,top+25,x-20,bottom-28,x+55,bottom);ctx.stroke()}
+   }
+   if(reflective){
+     const shine=ctx.createLinearGradient(0,top,w,bottom);shine.addColorStop(0,'rgba(255,255,255,0)');shine.addColorStop(.35,`rgba(255,255,255,${m==='metal'?'.23':'.16'})`);shine.addColorStop(.6,'rgba(255,255,255,0)');ctx.fillStyle=shine;ctx.fillRect(0,top,w,bottom-top)
+   }
+   ctx.restore();
+ };
+ texture('bg',0,horizon);texture('floor',horizon,h);
+ const yaw=values.camYaw*Math.PI/180,pitch=values.camPitch*Math.PI/180,roll=values.camRoll*Math.PI/180;
+ const right=[Math.cos(yaw),0,-Math.sin(yaw)],up=[-Math.sin(pitch)*Math.sin(yaw),Math.cos(pitch),-Math.sin(pitch)*Math.cos(yaw)],forward=[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)];
+ const dist=values.camDistance,previewScale=Math.min(1,h/(w*.76),h/220);
+ const compositionScale=values.scale==='작게'?.73:values.scale==='크게'?1.18:1;
+ const compositionX={중앙:0,좌측:-.19,우측:.19,비대칭:-.135,미지정:0}[values.placement]||0;
+ const fpx=w*.27*4*previewScale*(values.camFocal/70)*(values.camFrame/82)*compositionScale;
+ const origin=[w*(.5+compositionX+values.camShiftX/200),h*(.52+values.camShiftY/160)];
+ function project(pt){const rel=[pt[0],pt[1]-.72,pt[2]],X=dot(rel,right),Y=dot(rel,up),D=Math.max(.7,dist-dot(rel,forward)*(values.camPerspective/100));const f=fpx/D,xx=X*f,yy=-Y*f;return{x:origin[0]+xx*Math.cos(roll)-yy*Math.sin(roll),y:origin[1]+xx*Math.sin(roll)+yy*Math.cos(roll),depth:D}}
+ function path(points){ctx.beginPath();if(!points.length)return;ctx.moveTo(points[0].x,points[0].y);for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);ctx.closePath()}
+ // A neutral perspective grid remains visible in low lighting for camera comparisons.
+ ctx.save();ctx.strokeStyle='rgba(43,59,83,.105)';ctx.lineWidth=.7;
+ for(let g=-6;g<=6;g++){for(const line of [[[g,0,-5],[g,0,5]],[[-5,0,g],[5,0,g]]]){const a=project(line[0]),b=project(line[1]);if(Math.max(Math.abs(a.x),Math.abs(a.y),Math.abs(b.x),Math.abs(b.y))>20000)continue;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}}ctx.restore();
+ const S=.72,H=1.44;
+ const corners=[[-S,0,-S],[S,0,-S],[S,0,S],[-S,0,S]];
+ // 2D position pad is camera-relative: horizontal, vertical, then front/back depth.
+ const camSide=values.lightPosX/100*2.65,camUp=values.lightPosY/100*2.05;
+ const camDepth=values.lightDepth==='back'?-3.15:3.15;
+ const lampW=[right[0]*camSide+up[0]*camUp+forward[0]*camDepth,
+  .72+right[1]*camSide+up[1]*camUp+forward[1]*camDepth,
+  right[2]*camSide+up[2]*camUp+forward[2]*camDepth];
+ const lightVec=normalizedLightVec([lampW[0],lampW[1]-.72,lampW[2]]);
+ const lAlt=Math.asin(Math.max(-1,Math.min(1,lightVec[1])));
+ function normalizedLightVec(v){const length=Math.hypot(...v)||1;return v.map(x=>x/length)}
+ const spotCenter=project([0,.02,0]);
+ // Illuminated pool on the floor: narrower for spot lights, diffuse for area lights.
+ if(key>.01){
+  const poolRadius=values.lightType==='spot'?Math.max(35,values.lightSpread*.95):values.lightType==='point'?95:values.lightType==='parallel'?Math.max(w*.6,170):Math.max(w*.54,160);
+  const pool=ctx.createRadialGradient(spotCenter.x,spotCenter.y,6,spotCenter.x,spotCenter.y,poolRadius);
+  const poolAlpha=clamp(.035+key*.16,0,.42);
+  pool.addColorStop(0,rgb(keyColor,poolAlpha));
+  pool.addColorStop(clamp(.20+values.lightFeather/140,.25,.88),rgb(keyColor,poolAlpha*.43));pool.addColorStop(1,rgb(keyColor,0));
+  ctx.save();ctx.translate(spotCenter.x,spotCenter.y);ctx.scale(1,.50);ctx.translate(-spotCenter.x,-spotCenter.y);ctx.fillStyle=pool;ctx.fillRect(-w,-h,w*3,h*4);ctx.restore();
+ }
+ // Cast shadow is a hull projected from cube corners opposite the key light.
+ if(values.lightShadows&&values.lightShadowDark>0){
+  const shadowExtent=(.06+values.lightShadowLength/100*2.15)*(1.2-Math.sin(lAlt)*.85);
+  const off=[-lightVec[0]*shadowExtent,0,-lightVec[2]*shadowExtent];
+  const points=[...corners,...corners.map(p=>[p[0]+off[0],.012,p[2]+off[2]])].map(project).sort((a,b)=>a.x-b.x||a.y-b.y);
+  const cross=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+  const lower=[],upper=[];
+  for(const p of points){while(lower.length>1&&cross(lower[lower.length-2],lower[lower.length-1],p)<=0)lower.pop();lower.push(p)}
+  for(const p of [...points].reverse()){while(upper.length>1&&cross(upper[upper.length-2],upper[upper.length-1],p)<=0)upper.pop();upper.push(p)}
+  const hull=lower.slice(0,-1).concat(upper.slice(0,-1));
+  const strength=(values.lightShadowDark/100)*(.22+keyStrength*.55)*clamp(key/.9,0,1.4),soft=values.lightShadowSoft/100;
+  ctx.save();path(hull);ctx.shadowColor=`rgba(22,29,42,${clamp(strength*.8)})`;ctx.shadowBlur=soft*32;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;ctx.fillStyle=`rgba(19,26,40,${strength*(1-soft*.5)})`;ctx.fill();ctx.restore();
+  // Contact shadow anchors the cube even when the cast shadow points away from the viewer.
+  const contact=project([0,.016,0]),contactGrad=ctx.createRadialGradient(contact.x,contact.y,3,contact.x,contact.y,70);
+  contactGrad.addColorStop(0,`rgba(12,21,32,${strength*.7})`);contactGrad.addColorStop(1,'rgba(12,21,32,0)');
+  ctx.save();ctx.translate(contact.x,contact.y);ctx.scale(1,.27+soft*.12);ctx.translate(-contact.x,-contact.y);ctx.fillStyle=contactGrad;ctx.fillRect(contact.x-80,contact.y-85,160,170);ctx.restore();
+ }
+ // Lighting a gray cube: stronger face contrast, and a within-face gradient so even
+ // a straight-front camera clearly responds when the light moves left/right.
+ const cubeFaces=[
+ {n:[0,0,-1],p:[[-S,0,-S],[S,0,-S],[S,H,-S],[-S,H,-S]]},
+ {n:[-1,0,0],p:[[-S,0,-S],[-S,0,S],[-S,H,S],[-S,H,-S]]},
+ {n:[1,0,0],p:[[S,0,S],[S,0,-S],[S,H,-S],[S,H,S]]},
+ {n:[0,0,1],p:[[S,0,S],[-S,0,S],[-S,H,S],[S,H,S]]},
+ {n:[0,1,0],p:[[-S,H,S],[-S,H,-S],[S,H,-S],[S,H,S]]},
+ {n:[0,-1,0],p:[[-S,0,-S],[-S,0,S],[S,0,S],[S,0,-S]]}
+ ];
+ const normalized=(v)=>{const len=Math.hypot(...v)||1;return v.map(x=>x/len)};
+ function sampleLighting(normal,point){
+  const source=values.lightType==='parallel'?lightVec:normalized([lampW[0]-point[0],lampW[1]-point[1],lampW[2]-point[2]]);
+  const ndotl=Math.max(0,dot(normal,source));
+  let attenuation=1;
+  if(values.lightFalloff==='smooth')attenuation=.88;
+  if(values.lightFalloff==='strong')attenuation=.58;
+  if(values.lightType==='point')attenuation*=.93;
+  let spotAttenuation=1;
+  if(values.lightType==='spot'){
+    // Illustrative cone centered on the cube, narrower cones give a more focused hotspot.
+    const spread=clamp(values.lightSpread/120,.09,1),distFromCenter=Math.hypot(point[0],point[2],point[1]-.7);
+    spotAttenuation=clamp(1-distFromCenter*(1-spread)*.48,.35,1);
+  }
+  return ndotl*attenuation*spotAttenuation;
+ }
+ const keyPower=clamp(key,0,2),fillPower=fill*.28;
+ function faceColor(normal,p,brightnessGradient){
+  // Meaningful darkness at 0% key intensity: the fill light only gives a weak ambient lift.
+  const ambient=.065+fill*.20;
+  let brightness=ambient+keyPower*1.24*sampleLighting(normal,p)*brightnessGradient;
+  if(values.lightRim){const rim=(1-Math.max(0,dot(normal,forward)));brightness+=values.lightRimIntensity/100*.22*rim}
+  brightness=clamp(brightness,0,1.6);
+  // Use a tonal response curve rather than adding illumination to an almost-white base.
+  const value=26+210*Math.pow(clamp(brightness,0,1.32)/1.32,.73)+(brightnessGradient-1)*110*clamp(keyPower,0,1.4);
+  const tintPower=clamp(keyPower*.65,0,1);
+  const heated=[value*.98,value,value*1.035].map((v,i)=>v+(keyColor[i]-235)*tintPower*.48);
+  return rgb(heated.map(v=>clamp(v,12,250)));
+ }
+ cubeFaces.filter(f=>dot(f.n,forward)>0.0001).sort((a,b)=>{
+  const center=f=>f.p.reduce((r,p)=>r.map((v,i)=>v+p[i]/4),[0,0,0]);
+  return dot(center(a),forward)-dot(center(b),forward)
+ }).forEach(f=>{
+  const poly=f.p.map(project),center=f.p.reduce((r,p)=>r.map((v,i)=>v+p[i]/4),[0,0,0]);path(poly);
+  const from=project([lampW[0],lampW[1],lampW[2]]),pc=project(center);
+  // Gradient follows the light position, not only the cube's face normal.
+  const dx=pc.x-from.x,dy=pc.y-from.y,len=Math.max(1,Math.hypot(dx,dy));
+  const unit=[dx/len,dy/len];const extent=Math.max(50,Math.hypot(poly[1].x-poly[0].x,poly[1].y-poly[0].y));
+  const shape=ctx.createLinearGradient(pc.x-unit[0]*extent,pc.y-unit[1]*extent,pc.x+unit[0]*extent,pc.y+unit[1]*extent);
+  const gradStrength=values.lightType==='parallel'?.10:values.lightType==='area'?.43:values.lightType==='spot'?.70:.80;
+  const softFactor=1-values.lightFeather/100*.35;
+  const amount=gradStrength*softFactor*clamp(key,0,1.5);
+  shape.addColorStop(0,faceColor(f.n,center,1+amount));
+  shape.addColorStop(.5,faceColor(f.n,center,1));
+  shape.addColorStop(1,faceColor(f.n,center,1-amount));
+  ctx.fillStyle=shape;ctx.fill();ctx.lineWidth=1.2;ctx.lineJoin='round';ctx.strokeStyle='rgba(57,70,89,.45)';ctx.stroke();
+ });
+ // Practical cue for light direction. This makes a direction change obvious even
+ // when the key light is behind the cube, or the visible face stays nearly uniform.
+ if(key>.01&&added.includes('lighting')&&scopeIncluded('lighting','key')){
+  const center=project([0,.8,0]);
+  const raw=project([lampW[0],lampW[1],lampW[2]]);
+  const px=clamp(raw.x,34,w-34),py=clamp(raw.y,77,h-38);
+  ctx.save();ctx.setLineDash([5,5]);ctx.lineWidth=1.5;ctx.strokeStyle='rgba(72,91,120,.65)';ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(center.x,center.y);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=rgb(keyColor,.20+keyStrength*.32);ctx.beginPath();ctx.arc(px,py,19,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(45,61,82,.75)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(px,py,12,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#374a65';ctx.beginPath();ctx.arc(px,py,5.5,0,Math.PI*2);ctx.fill();
+  ctx.font='700 11px Pretendard,"Noto Sans KR",system-ui,sans-serif';ctx.textAlign=px>w*.7?'right':'left';ctx.fillStyle='#334660';ctx.fillText('빛 방향',px>w*.7?px-23:px+23,py-9);
+  ctx.restore();
+ }
+}
+new ResizeObserver(()=>drawPreview()).observe(canvas.parentElement);window.addEventListener('resize',drawPreview);render();
+</script></body></html>
